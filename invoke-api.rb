@@ -17,13 +17,13 @@ end
 #
 # REST API(GET)の実行
 #
-def invoke_evaluate(_expr, _model = latest, _count, _attributes)
+def invoke_evaluate(expr:, model: "latest", count: 10, attributes:)
 
   options = ""
-  options = concatenation(options, "expr", _expr, "&")
-  options = concatenation(options, "model", _model, "&")
-  options = concatenation(options, "count", _count, "&")
-  options = concatenation(options, "attributes", _attributes, "&")
+  options = concatenation(options, "expr", expr, "&")
+  options = concatenation(options, "model", model, "&")
+  options = concatenation(options, "count", count, "&")
+  options = concatenation(options, "attributes", attributes, "&")
 
   url = "https://api.labs.cognitive.microsoft.com/academic/v1.0/evaluate?#{options}"
 
@@ -37,10 +37,7 @@ def invoke_evaluate(_expr, _model = latest, _count, _attributes)
     }
   )
 
-  resp_json = JSON.parse(resp)
-
-  puts url
-  puts resp_json
+  return JSON.parse(resp)
 end
 
 # main
