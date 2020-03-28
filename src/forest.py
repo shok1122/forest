@@ -18,7 +18,7 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, input_dir = ""):
         for k in keyword.split(' '):
             title_keyword += f"W=='{k}',"
     
-    field_keyword = field_keyword[:-1] + ')'
+    field_keyword = field_keyword[:-1] + '))'
     title_keyword = title_keyword[:-1] + ')'
 
     expr = f'Or({title_keyword},{field_keyword})'
@@ -27,9 +27,14 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, input_dir = ""):
 
     with open('cache/subscription.key', 'rt') as f:
         token = f.read()
+    
+    papers = {}
+    forest = [func.Tree()] * tier
 
-    func.invoke(token, expr, attr, count)
+    for i in range(tier):
+        response = func.invoke_evaluate(token, expr, attr, count)
+        e = response['entities']
+        func.parse_entities(e, papers, forest[i])
 
 if __name__=='__main__':
-    func.print_str('Hello')
-    forest(['blockchain'])
+    forest(['cyber physical system', 'blockchain'])
