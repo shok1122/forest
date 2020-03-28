@@ -52,29 +52,10 @@ if __name__=='__main__':
         required = False,
         default = 'cache',
         help = 'output dir')
-    parser.add_argument(
-        '--input-dir',
-        required = False,
-        help = 'input dir')
-    parser.add_argument(
-        '-k', '--keywords',
-        required = True,
-        nargs = '*',
-        help = 'keyword')
-    parser.add_argument(
-        '-c', '--count',
-        default = 1000,
-        type = int,
-        help = 'count')
-    parser.add_argument(
-        '-r', '--rank',
-        default = 100,
-        type = int,
-        help = 'rank')
-    parser.add_argument(
-        '-t', '--tier',
-        default = 1,
-        type = int,
-        help = 'tier')
+    parser.add_argument('--input-dir', required = False, help = 'input dir')
+    parser.add_argument('-k', '--keywords', required = True, nargs = '*', help = 'keyword')
+    parser.add_argument('-c', '--count', default = 1000, type = int, help = 'count')
+    parser.add_argument('-r', '--rank', default = 100, type = int, help = 'rank')
+    parser.add_argument('-t', '--tier', default = 1, type = int, help = 'tier')
     args = parser.parse_args()
     forest(args.keywords, args.count, args.rank, args.tier, args.output_dir, args.input_dir)

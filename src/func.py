@@ -120,17 +120,21 @@ def parse_entities(entities, papers, forest):
     for e in entities:
         id = e['Id']
         # papers
-        p = {}
-        if 'IA' in e: p['abst'] = parse_abstract(e['IA'])
-        if 'AA' in e: p['authors'] = parse_authors(e['AA'])
-        if 'CC' in e: p['citation_count'] = e['CC']
-        if 'C'  in e: p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']}
-        if 'Id' in e: p['id'] = e['Id']
-        if 'J'  in e: p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']}
-        parse_publication(e, p)
-        if 'DN'  in e: p['title'] = e['DN']
-        if 'RId' in e: p['references'] = e['RId']
-        papers[id] = p
+        if id in papers:
+            papers[id]['count'] += 1
+        else:
+            p = {}
+            p['count'] = 1
+            if 'IA' in e: p['abst'] = parse_abstract(e['IA'])
+            if 'AA' in e: p['authors'] = parse_authors(e['AA'])
+            if 'CC' in e: p['citation_count'] = e['CC']
+            if 'C'  in e: p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']}
+            if 'Id' in e: p['id'] = e['Id']
+            if 'J'  in e: p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']}
+            parse_publication(e, p)
+            if 'DN'  in e: p['title'] = e['DN']
+            if 'RId' in e: p['references'] = e['RId']
+            papers[id] = p
         # forest
         if 'RId' in e: forest[id] = e['RId']
 

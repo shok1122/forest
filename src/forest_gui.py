@@ -10,7 +10,7 @@ app.layout = html.Div(
    children =[
     html.H1('Hello Dash',),
     dcc.Graph(
-        id = "first-graph",
+        id = "paper count",
         figure = {
         'data': [
             {'x': [1,2,3,4],
