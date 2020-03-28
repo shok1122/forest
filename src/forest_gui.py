@@ -11,8 +11,6 @@ def figure_citation_count(papers):
         Y.append(str(papers[x]['citation_count']))
     for i in range(len(X)):
         X[i] = 'id:' + X[i]
-    print(X)
-    print(Y)
     fig = {
         'data': [
             {
@@ -50,7 +48,7 @@ def figure_reference_count(papers):
     }
     return fig
 
-def figure_display_count(analyze):
+def figure_match_count(analyze):
     X = list(analyze.keys())
     Y = []
     for x in X:
@@ -67,7 +65,7 @@ def figure_display_count(analyze):
             }
         ],
         'layout': {
-            'title': 'display count'
+            'title': 'match count'
         }
     }
     return fig
@@ -76,7 +74,7 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
     papers, analyze = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
     fig_cit_cnt = figure_citation_count(papers)
     fig_ref_cnt = figure_reference_count(papers)
-    fig_disp_cnt = figure_display_count(analyze)
+    fig_disp_cnt = figure_match_count(analyze)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
@@ -94,12 +92,8 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
                 figure = fig_ref_cnt
             ),
             dcc.Graph(
-                id = 'display count',
+                id = 'match count',
                 figure = fig_disp_cnt
             )
         ])
-    app.run_server(debug=True)
-
-# 実行用③
-if __name__=='__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

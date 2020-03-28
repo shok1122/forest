@@ -31,13 +31,18 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
             response = func.invoke_evaluate(token, expr, attr, count)
             e = response['entities']
             func.parse_entities(e, papers, forest[i])
+            forest_list = []
+            for v in forest[i].values():
+                for vv in v:
+                    if vv not in forest_list: forest_list.append(vv)
+            option = ','.join(list(map(lambda x: f'Id={x}', forest_list)))
+            expr = f'Or({option})'
         for t in forest:
             for id in t.keys():
                 for v in t[id]:
                     if str(v) in analyze:
                         analyze[str(v)]['count'] += 1
                     else:
-                        print('new')
                         analyze[str(v)] = {'count':1}
         with open(f'{output_dir}/papers.json', 'wt') as f:
             json.dump(papers, f)
