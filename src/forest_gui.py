@@ -4,13 +4,13 @@ import dash_html_components as html
 
 import forest_cui
 
-def figure_citation_count(papers):
-    X = list(papers.keys())
+def figure_citation_count(papers, keys):
+    X = [0] * len(keys)
     Y = []
-    for x in X:
+    for x in keys:
         Y.append(str(papers[x]['citation_count']))
-    for i in range(len(X)):
-        X[i] = 'id:' + X[i]
+    for i in range(len(keys)):
+        X[i] = 'id:' + keys[i]
     fig = {
         'data': [
             {
@@ -26,13 +26,13 @@ def figure_citation_count(papers):
     }
     return fig
 
-def figure_reference_count(papers):
-    X = list(papers.keys())
+def figure_reference_count(papers, keys):
+    X = [0] * len(keys)
     Y = []
-    for x in X:
+    for x in keys:
         Y.append(len(papers[x]['references']))
-    for i in range(len(X)):
-        X[i] = 'id:' + X[i]
+    for i in range(len(keys)):
+        X[i] = 'id:' + keys[i]
     fig = {
         'data': [
             {
@@ -48,13 +48,14 @@ def figure_reference_count(papers):
     }
     return fig
 
-def figure_match_count(analyze):
-    X = list(analyze.keys())
+def figure_match_count(analyze, keys):
+    X = [0] * len(keys)
     Y = []
-    for x in X:
-        Y.append(analyze[x]['count'])
-    for i in range(len(X)):
-        X[i] = 'id:' + X[i]
+    for x in keys:
+        if str(x) in analyze:
+            Y.append(analyze[str(x)]['count'])
+    for i in range(len(keys)):
+        X[i] = 'id:' + keys[i]
     fig = {
         'data': [
             {
@@ -72,9 +73,11 @@ def figure_match_count(analyze):
 
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
     papers, analyze = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
-    fig_cit_cnt = figure_citation_count(papers)
-    fig_ref_cnt = figure_reference_count(papers)
-    fig_disp_cnt = figure_match_count(analyze)
+    keys = list(papers.keys())
+    keys.sort()
+    fig_cit_cnt = figure_citation_count(papers, keys)
+    fig_ref_cnt = figure_reference_count(papers, keys)
+    fig_disp_cnt = figure_match_count(analyze, keys)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
