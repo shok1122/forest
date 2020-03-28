@@ -1,3 +1,5 @@
+import json
+
 import func
 
 def read_attribute(path):
@@ -35,6 +37,9 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, input_dir = ""):
         response = func.invoke_evaluate(token, expr, attr, count)
         e = response['entities']
         func.parse_entities(e, papers, forest[i])
+
+    with open('cache/result.json', 'wt') as f:
+        json.dump(papers, f)
 
 if __name__=='__main__':
     forest(['cyber physical system', 'blockchain'])

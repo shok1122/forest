@@ -88,13 +88,12 @@ def parse_abstract(info):
     return ' '.join(abst)
 
 def parse_authors(authors):
-
     l = len(authors)
-    retval = [Author()] * l
+    retval = [{}] * l
     for a in authors:
         r = retval[int(a['S']) - 1]
-        r.name = a['DAuN']
-        r.affiliation = a['DAfN']
+        r['name'] = a['DAuN']
+        r['affiliation'] = a['DAfN']
     return retval
 
 def publication_type(pt):
@@ -108,29 +107,26 @@ def publication_type(pt):
         'Dataset',
         'Repository'][pt]
 
-def parse_publication(e, publication):
-    if 'Pt'  in e: publication.type = e['Pt']
-    if 'VFN' in e: publication.name_f = e['VFN']
-    if 'VSN' in e: publication.name_f = e['VSN']
-    if 'PB'  in e: publication.publisher = e['PB']
-    if 'V'   in e: publication.volume = e['V']
-    if 'Y'   in e: publication.year = e['Y']
+def parse_publication(e, p):
+    p['publication'] = {}
+    if 'Pt'  in e: p['publication']['type'] = e['Pt']
+    if 'VFN' in e: p['publication']['name_f'] = e['VFN']
+    if 'VSN' in e: p['publication']['name_f'] = e['VSN']
+    if 'PB'  in e: p['publication']['publisher'] = e['PB']
+    if 'V'   in e: p['publication']['volume'] = e['V']
+    if 'Y'   in e: p['publication']['year'] = e['Y']
 
 def parse_entities(entities, papers, forest):
     for e in entities:
-        p = Paper()
-        if 'IA' in e: p.abstract = parse_abstract(e['IA'])
-        if 'AA' in e: p.authors = parse_authors(e['AA'])
-        if 'CC' in e: p.citation_count = e['CC']
-        if 'C'  in e:
-            p.conference.id   = e['C']['CId']
-            p.conference.name = e['C']['CN']
-        if 'Id' in e: p.id = e['Id']
-        if 'J'  in e:
-            p.journal.id   = e['J']['JId']
-            p.journal.name = e['J']['JN']
-        parse_publication(e, p.publication)
-        if 'DN'  in e: p.title = e['DN']
-        if 'RId' in e: p.references = e['RId']
+        p = {}
+        if 'IA' in e: p['abst'] = parse_abstract(e['IA'])
+        if 'AA' in e: p['authors'] = parse_authors(e['AA'])
+        if 'CC' in e: p['citation_count'] = e['CC']
+        if 'C'  in e: p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']}
+        if 'Id' in e: p['id'] = e['Id']
+        if 'J'  in e: p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']}
+        parse_publication(e, p)
+        if 'DN'  in e: p['title'] = e['DN']
+        if 'RId' in e: p['references'] = e['RId']
         papers[e['Id']] = p
 
