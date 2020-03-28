@@ -13,7 +13,7 @@ def read_attribute(path):
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
     papers = {}
     forest = [{}] * tier
-    info = {}
+    analyze = {}
     if input_dir is None:
         field_keyword = 'Composite(And('
         title_keyword = 'And('
@@ -34,21 +34,26 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
         for t in forest:
             for id in t.keys():
                 for v in t[id]:
-                    if str(v) in info:
-                        info[str(v)]['count'] += 1
+                    if str(v) in analyze:
+                        analyze[str(v)]['count'] += 1
                     else:
                         print('new')
-                        info[str(v)] = {'count':1}
+                        analyze[str(v)] = {'count':1}
         with open(f'{output_dir}/papers.json', 'wt') as f:
             json.dump(papers, f)
         with open(f'{output_dir}/forest.json', 'wt') as f:
             json.dump(forest, f)
+        with open(f'{output_dir}/analyze.json', 'wt') as f:
+            json.dump(analyze, f)
+        
     else:
         with open(f'{input_dir}/papers.json', 'rt') as f:
             papers = json.load(f)
         with open(f'{input_dir}/forest.json', 'rt') as f:
             forest = json.load(f)
-    return papers, info
+        with open(f'{input_dir}/analyze.json', 'rt') as f:
+            analyze = json.load(f)
+    return papers, analyze
 
 if __name__=='__main__':
     forest(['blockchain', 'cyber physical system'])

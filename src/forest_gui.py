@@ -50,11 +50,11 @@ def figure_reference_count(papers):
     }
     return fig
 
-def figure_display_count(info):
-    X = list(info.keys())
+def figure_display_count(analyze):
+    X = list(analyze.keys())
     Y = []
     for x in X:
-        Y.append(info[x]['count'])
+        Y.append(analyze[x]['count'])
     for i in range(len(X)):
         X[i] = 'id:' + X[i]
     fig = {
@@ -73,10 +73,10 @@ def figure_display_count(info):
     return fig
 
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
-    papers, info = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
+    papers, analyze = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
     fig_cit_cnt = figure_citation_count(papers)
     fig_ref_cnt = figure_reference_count(papers)
-    fig_disp_cnt = figure_display_count(info)
+    fig_disp_cnt = figure_display_count(analyze)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
