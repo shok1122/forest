@@ -8,14 +8,14 @@ def read_attribute(path):
     
     return attr
 
-def forest(keyword, count = 1000, rank = 100, tier = 1, input_dir = ""):
+def forest(keywords, count = 1000, rank = 100, tier = 1, input_dir = ""):
 
     field_keyword = 'Composite(And('
     title_keyword = 'And('
 
-    for kw in keyword:
-        field_keyword += f"F.FN=='{kw}',"
-        for k in kw.split(' '):
+    for keyword in keywords:
+        field_keyword += f"F.FN=='{keyword}',"
+        for k in keyword.split(' '):
             title_keyword += f"W=='{k}',"
     
     field_keyword = field_keyword[:-1] + ')'
