@@ -73,13 +73,26 @@ def figure_match_count(analyze, keys):
     return fig
 
 def create_columns(name):
-    return {'id':name,'name':name}
+    return {
+        'id':name,
+        'name':name
+    }
 
 def create_data(papers):
-    return [{'id':papers[k]['id'],'title':papers[k]['title']} for k in papers]
+    data = [
+        {
+            'id':papers[k]['id'],
+            'title':papers[k]['title']
+        } for k in papers
+    ]
+    data.sort(key = lambda x: x['id'])
+    for i,v in enumerate(data):
+        v['index'] = i
+    return data
 
 def table_papers(papers):
     columns = [
+        create_columns('index'),
         create_columns('id'),
         create_columns('title')
     ]
