@@ -34,16 +34,26 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         attr = read_attribute('asset/attributes')
         with open('cache/subscription.key', 'rt') as f:
             token = f.read()
-        for i in range(tier):
-            response = func.invoke_evaluate(token, expr, attr, count)
-            e = response['entities']
-            func.parse_entities(e, papers, forests[i])
-            forest_list = []
+
+        response = func.invoke_evaluate(token, expr, attr, count)
+        func.parse_entities(response['entities'], papers, forests[0])
+
+        next_list = []
+        for v in forests[0].values():
+            for vv in v:
+                if vv not in next_list: next_list.append(vv)
+
+        for i in range(1, tier):
+            while 0 < len(next_list):
+                expr = 'Or(' + ','.join(list(map(lambda x: f'Id={x}', next_list[0:100]))) + ')'
+                response = func.invoke_evaluate(token, expr, attr, count)
+                func.parse_entities(response['entities'], papers, forests[i])
+                del next_list[0:100]
+            next_list = []
             for v in forests[i].values():
                 for vv in v:
-                    if vv not in forest_list: forest_list.append(vv)
-            option = ','.join(list(map(lambda x: f'Id={x}', forest_list)))
-            expr = f'Or({option})'
+                    if vv not in next_list: next_list.append(vv)
+
         for f in forests:
             for id in f.keys():
                 count_appearance(id, analyze)
