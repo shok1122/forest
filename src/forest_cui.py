@@ -21,10 +21,13 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
     if input_dir is None:
         field_keyword = 'Composite(And('
         title_keyword = 'And('
+        title_keyword_tmp = []
         for keyword in keywords:
             field_keyword += f"F.FN=='{keyword}',"
-            for k in keyword.split(' '):
-                title_keyword += f"W=='{k}',"
+            title_keyword_tmp.append(
+                'And(' + ','.join(list(map(lambda x: f"W=='{x}'", keyword.split()))) + ')'
+            )
+        title_keyword = 'Or(' + ','.join(title_keyword_tmp) + ')'
         field_keyword = field_keyword[:-1] + '))'
         title_keyword = title_keyword[:-1] + ')'
         expr = f'And(Y={year},Or({title_keyword},{field_keyword}))'
