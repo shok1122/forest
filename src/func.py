@@ -69,6 +69,7 @@ def invoke_evaluate(token, expr, attr, count = 10, model = 'latest'):
         'Content-Type' : 'application/json',
         'Ocp-Apim-Subscription-Key' : token
     }
+    print(url)
 
     response = invoke_api(url, headers)
 
@@ -88,9 +89,9 @@ def parse_abstract(info):
 
 def parse_authors(authors):
     l = len(authors)
-    retval = [{}] * l
-    for a in authors:
-        r = retval[int(a['S']) - 1]
+    retval = [{} for i in range(l)]
+    for i,a in enumerate(authors):
+        r = retval[i]
         r['name'] = a['DAuN']
         r['affiliation'] = a['DAfN']
     return retval
