@@ -1,4 +1,5 @@
 import dash  
+import dash_table
 import dash_core_components as dcc 
 import dash_html_components as html  
 
@@ -71,6 +72,20 @@ def figure_match_count(analyze, keys):
     }
     return fig
 
+def create_columns(name):
+    return {'id':name,'name':name}
+
+def create_data(papers):
+    return [{'id':papers[k]['id'],'title':papers[k]['title']} for k in papers]
+
+def table_papers(papers):
+    columns = [
+        create_columns('id'),
+        create_columns('title')
+    ]
+    data = create_data(papers)
+    return columns, data
+
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
     papers, analyze = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
     keys = list(papers.keys())
@@ -78,6 +93,7 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
     fig_cit_cnt = figure_citation_count(papers, keys)
     fig_ref_cnt = figure_reference_count(papers, keys)
     fig_disp_cnt = figure_match_count(analyze, keys)
+    tbl_papers_c, tbl_papers_d = table_papers(papers)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
@@ -97,6 +113,12 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
             dcc.Graph(
                 id = 'match count',
                 figure = fig_disp_cnt
+            ),
+            html.H1('AAA',),
+            dash_table.DataTable(
+                id='table-editing-simple',
+                columns=tbl_papers_c,
+                data=tbl_papers_d
             )
         ])
     app.run_server(debug=False)
