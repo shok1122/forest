@@ -73,10 +73,19 @@ def figure_match_count(analyze, keys):
     return fig
 
 def create_columns(name):
-    return {
+    columns = {
         'id':name,
         'name':name
     }
+    return columns
+
+def create_style_cell_conditional(name_columns):
+    return [
+        {
+            'if': {'column_id': c},
+            'textAlign': 'left'
+        } for c in name_columns
+    ]
 
 def create_data(papers):
     data = [
@@ -96,8 +105,9 @@ def table_papers(papers):
         create_columns('id'),
         create_columns('title')
     ]
+    style_cell_conditional = create_style_cell_conditional(['title'])
     data = create_data(papers)
-    return columns, data
+    return columns, data, style_cell_conditional
 
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
     papers, analyze = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
@@ -106,7 +116,7 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
     fig_cit_cnt = figure_citation_count(papers, keys)
     fig_ref_cnt = figure_reference_count(papers, keys)
     fig_disp_cnt = figure_match_count(analyze, keys)
-    tbl_papers_c, tbl_papers_d = table_papers(papers)
+    tbl_papers_c, tbl_papers_d, style_cell_conditional = table_papers(papers)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
@@ -131,7 +141,8 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
             dash_table.DataTable(
                 id='table-editing-simple',
                 columns=tbl_papers_c,
-                data=tbl_papers_d
+                data=tbl_papers_d,
+                style_cell_conditional = style_cell_conditional
             )
         ])
     app.run_server(debug=False)
