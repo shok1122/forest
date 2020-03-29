@@ -53,8 +53,8 @@ def figure_appearance_count(analyze, keys):
     X = [0] * len(keys)
     Y = []
     for x in keys:
-        if str(x) in analyze:
-            Y.append(analyze[str(x)]['appearance'])
+        if int(x) in analyze:
+            Y.append(analyze[int(x)]['appearance_count'])
     for i in range(len(keys)):
         X[i] = 'id:' + keys[i]
     fig = {
@@ -91,7 +91,8 @@ def create_data(papers, analyze):
     data = [
         {
             'id':papers[k]['id'],
-            'appearance':analyze[int(k)]['appearance'],
+            'appearance_count':analyze[int(k)]['appearance_count'],
+            'citation_count':papers[k]['citation_count'],
             'title':papers[k]['title']
         } for k in papers
     ]
@@ -104,7 +105,8 @@ def table_papers(papers, analyze):
     columns = [
         create_columns('index'),
         create_columns('id'),
-        create_columns('appearance'),
+        create_columns('appearance_count'),
+        create_columns('citation_count'),
         create_columns('title')
     ]
     style_cell_conditional = create_style_cell_conditional(['title'])

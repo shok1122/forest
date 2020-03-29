@@ -10,9 +10,9 @@ def read_attribute(path):
 
 def count_appearance(id, analyze):
     if id in analyze:
-        analyze[id]['appearance'] += 1
+        analyze[id]['appearance_count'] += 1
     else:
-        analyze[id] = {'appearance':1}
+        analyze[id] = {'appearance_count':1}
 
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
     papers = {}
