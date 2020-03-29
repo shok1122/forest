@@ -118,7 +118,7 @@ def parse_publication(e, p):
 
 def parse_entities(entities, papers, forest):
     for e in entities:
-        id = e['Id']
+        id = str(e['Id'])
         # papers
         p = {}
         if 'IA' in e: p['abst'] = parse_abstract(e['IA'])
@@ -130,6 +130,6 @@ def parse_entities(entities, papers, forest):
         parse_publication(e, p)
         if 'DN'  in e: p['title'] = e['DN']
         p['references'] = e['RId'] if 'RId' in e else []
-        papers[str(id)] = p
+        papers[id] = p
         # forest
-        forest[id] = e['RId'] if 'RId' in e else []
+        forest[id] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
