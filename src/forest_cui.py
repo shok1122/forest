@@ -3,12 +3,16 @@ import json
 import func
 
 def read_attribute(path):
-    
     with open(path, mode='rt') as f:
         lines = list(f)
         attr = ','.join(list(map(lambda x: x.rstrip(), lines)))
-    
     return attr
+
+def count_appearance(id, analyze):
+    if id in analyze:
+        analyze[id]['appearance'] += 1
+    else:
+        analyze[id] = {'appearance':1}
 
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
     papers = {}
@@ -39,11 +43,9 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
             expr = f'Or({option})'
         for t in forest:
             for id in t.keys():
+                count_appearance(id, analyze)
                 for v in t[id]:
-                    if str(v) in analyze:
-                        analyze[str(v)]['count'] += 1
-                    else:
-                        analyze[str(v)] = {'count':1}
+                    count_appearance(v, analyze)
         with open(f'{output_dir}/papers.json', 'wt') as f:
             json.dump(papers, f)
         with open(f'{output_dir}/forest.json', 'wt') as f:

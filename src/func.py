@@ -132,4 +132,4 @@ def parse_entities(entities, papers, forest):
         p['references'] = e['RId'] if 'RId' in e else []
         papers[str(id)] = p
         # forest
-        if 'RId' in e: forest[id] = e['RId']
+        forest[id] = e['RId'] if 'RId' in e else []

@@ -49,12 +49,12 @@ def figure_reference_count(papers, keys):
     }
     return fig
 
-def figure_match_count(analyze, keys):
+def figure_appearance_count(analyze, keys):
     X = [0] * len(keys)
     Y = []
     for x in keys:
         if str(x) in analyze:
-            Y.append(analyze[str(x)]['count'])
+            Y.append(analyze[str(x)]['appearance'])
     for i in range(len(keys)):
         X[i] = 'id:' + keys[i]
     fig = {
@@ -67,7 +67,7 @@ def figure_match_count(analyze, keys):
             }
         ],
         'layout': {
-            'title': 'match count'
+            'title': 'appearance count'
         }
     }
     return fig
@@ -87,10 +87,11 @@ def create_style_cell_conditional(name_columns):
         } for c in name_columns
     ]
 
-def create_data(papers):
+def create_data(papers, analyze):
     data = [
         {
             'id':papers[k]['id'],
+            'appearance':analyze[int(k)]['appearance'],
             'title':papers[k]['title']
         } for k in papers
     ]
@@ -99,14 +100,15 @@ def create_data(papers):
         v['index'] = i
     return data
 
-def table_papers(papers):
+def table_papers(papers, analyze):
     columns = [
         create_columns('index'),
         create_columns('id'),
+        create_columns('appearance'),
         create_columns('title')
     ]
     style_cell_conditional = create_style_cell_conditional(['title'])
-    data = create_data(papers)
+    data = create_data(papers, analyze)
     return columns, data, style_cell_conditional
 
 def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
@@ -115,8 +117,8 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
     keys.sort()
     fig_cit_cnt = figure_citation_count(papers, keys)
     fig_ref_cnt = figure_reference_count(papers, keys)
-    fig_disp_cnt = figure_match_count(analyze, keys)
-    tbl_papers_c, tbl_papers_d, style_cell_conditional = table_papers(papers)
+    fig_appearance_cnt = figure_appearance_count(analyze, keys)
+    tbl_papers_c, tbl_papers_d, style_cell_conditional = table_papers(papers, analyze)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
@@ -134,8 +136,8 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
                 figure = fig_ref_cnt
             ),
             dcc.Graph(
-                id = 'match count',
-                figure = fig_disp_cnt
+                id = 'appearance count',
+                figure = fig_appearance_cnt
             ),
             html.H1('AAA',),
             dash_table.DataTable(
