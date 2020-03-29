@@ -57,7 +57,6 @@ def invoke_api(url, headers):
     return response
 
 def invoke_evaluate(token, expr, attr, count = 10, model = 'latest'):
-
     options = ''
     if expr  is not None: options += f'expr={expr}&'
     if model is not None: options += f'model={model}&'

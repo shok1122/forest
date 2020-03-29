@@ -113,8 +113,15 @@ def table_papers(papers, analyze):
     data = create_data(papers, analyze)
     return columns, data, style_cell_conditional
 
-def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
-    papers, analyze = forest_cui.forest(keywords, count, rank, tier, output_dir, input_dir)
+def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
+    papers, analyze = forest_cui.forest(
+        keywords,
+        count = count,
+        rank = rank,
+        year = year,
+        tier = tier,
+        output_dir = output_dir,
+        input_dir = input_dir)
     keys = list(papers.keys())
     keys.sort()
     fig_cit_cnt = figure_citation_count(papers, keys)
@@ -146,7 +153,8 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
                 id='table-editing-simple',
                 columns=tbl_papers_c,
                 data=tbl_papers_d,
-                style_cell_conditional = style_cell_conditional
+                style_cell_conditional = style_cell_conditional,
+                sort_action = 'native'
             )
         ])
     app.run_server(debug=False)

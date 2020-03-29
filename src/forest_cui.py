@@ -14,9 +14,9 @@ def count_appearance(id, analyze):
     else:
         analyze[id] = {'appearance_count':1}
 
-def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', input_dir = None):
+def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
     papers = {}
-    forest = [{}] * tier
+    forests = [{} for i in range(tier)]
     analyze = {}
     if input_dir is None:
         field_keyword = 'Composite(And('
@@ -27,37 +27,37 @@ def forest(keywords, count = 1000, rank = 100, tier = 1, output_dir = 'cache', i
                 title_keyword += f"W=='{k}',"
         field_keyword = field_keyword[:-1] + '))'
         title_keyword = title_keyword[:-1] + ')'
-        expr = f'Or({title_keyword},{field_keyword})'
+        expr = f'And(Y={year},Or({title_keyword},{field_keyword}))'
         attr = read_attribute('asset/attributes')
         with open('cache/subscription.key', 'rt') as f:
             token = f.read()
         for i in range(tier):
             response = func.invoke_evaluate(token, expr, attr, count)
             e = response['entities']
-            func.parse_entities(e, papers, forest[i])
+            func.parse_entities(e, papers, forests[i])
             forest_list = []
-            for v in forest[i].values():
+            for v in forests[i].values():
                 for vv in v:
                     if vv not in forest_list: forest_list.append(vv)
             option = ','.join(list(map(lambda x: f'Id={x}', forest_list)))
             expr = f'Or({option})'
-        for t in forest:
-            for id in t.keys():
+        for f in forests:
+            for id in f.keys():
                 count_appearance(id, analyze)
-                for v in t[id]:
+                for v in f[id]:
                     count_appearance(v, analyze)
         with open(f'{output_dir}/papers.json', 'wt') as f:
             json.dump(papers, f)
-        with open(f'{output_dir}/forest.json', 'wt') as f:
-            json.dump(forest, f)
+        with open(f'{output_dir}/forests.json', 'wt') as f:
+            json.dump(forests, f)
         with open(f'{output_dir}/analyze.json', 'wt') as f:
             json.dump(analyze, f)
         
     else:
         with open(f'{input_dir}/papers.json', 'rt') as f:
             papers = json.load(f)
-        with open(f'{input_dir}/forest.json', 'rt') as f:
-            forest = json.load(f)
+        with open(f'{input_dir}/forests.json', 'rt') as f:
+            forests = json.load(f)
         with open(f'{input_dir}/analyze.json', 'rt') as f:
             analyze = json.load(f)
     return papers, analyze

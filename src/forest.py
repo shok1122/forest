@@ -17,6 +17,7 @@ parser.add_argument('--input-dir', required = False, help = 'input dir')
 parser.add_argument('-k', '--keywords', required = True, nargs = '*', help = 'keyword')
 parser.add_argument('-c', '--count', default = 1000, type = int, help = 'count')
 parser.add_argument('-r', '--rank', default = 100, type = int, help = 'rank')
+parser.add_argument('-y', '--year', default = 2019, type = int, help = 'year')
 parser.add_argument('-t', '--tier', default = 1, type = int, help = 'tier')
 parser.add_argument('--mode', default = 'cui', choices = ['cui', 'gui'], help = 'tier')
 args = parser.parse_args()
@@ -26,4 +27,11 @@ if args.mode == 'cui':
     forest_cui.forest(args.keywords, args.count, args.rank, args.tier, args.output_dir, args.input_dir)
 else:
     print('mode: gui')
-    forest_gui.forest(args.keywords, args.count, args.rank, args.tier, args.output_dir, args.input_dir)
+    forest_gui.forest(
+        args.keywords,
+        count = args.count,
+        rank = args.rank,
+        year = args.year,
+        tier = args.tier,
+        output_dir = args.output_dir,
+        input_dir = args.input_dir)
