@@ -69,7 +69,6 @@ def invoke_evaluate(token, expr, attr, count = 10, model = 'latest'):
         'Content-Type' : 'application/json',
         'Ocp-Apim-Subscription-Key' : token
     }
-    print(url)
 
     response = invoke_api(url, headers)
 

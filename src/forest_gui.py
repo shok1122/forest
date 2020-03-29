@@ -91,6 +91,7 @@ def create_data(papers, analyze):
     data = [
         {
             'id':papers[k]['id'],
+            'year':papers[k]['publication']['year'],
             'appearance_count':analyze[k]['appearance_count'],
             'citation_count':papers[k]['citation_count'],
             'title':papers[k]['title']
@@ -105,6 +106,7 @@ def table_papers(papers, analyze):
     columns = [
         create_columns('index'),
         create_columns('id'),
+        create_columns('year'),
         create_columns('appearance_count'),
         create_columns('citation_count'),
         create_columns('title')
