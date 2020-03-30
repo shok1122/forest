@@ -107,13 +107,12 @@ def publication_type(pt):
         'Repository'][pt]
 
 def parse_publication(e, p):
-    p['publication'] = {}
-    if 'Pt'  in e: p['publication']['type'] = e['Pt']
-    if 'VFN' in e: p['publication']['name_f'] = e['VFN']
-    if 'VSN' in e: p['publication']['name_f'] = e['VSN']
-    if 'PB'  in e: p['publication']['publisher'] = e['PB']
-    if 'V'   in e: p['publication']['volume'] = e['V']
-    if 'Y'   in e: p['publication']['year'] = e['Y']
+    if 'Pt'  in e: p['pub-type'] = e['Pt']
+    if 'VFN' in e: p['pub-name_f'] = e['VFN']
+    if 'VSN' in e: p['pub-name_f'] = e['VSN']
+    if 'PB'  in e: p['publisher'] = e['PB']
+    if 'V'   in e: p['volume'] = e['V']
+    if 'Y'   in e: p['year'] = e['Y']
 
 def parse_entities(entities, papers, forest):
     for e in entities:
@@ -128,7 +127,7 @@ def parse_entities(entities, papers, forest):
         if 'J'  in e: p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']}
         parse_publication(e, p)
         if 'DN'  in e: p['title'] = e['DN']
-        p['references'] = e['RId'] if 'RId' in e else []
+        p['references'] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
         papers[id] = p
         # forest
         forest[id] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []

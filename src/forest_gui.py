@@ -1,7 +1,8 @@
-import dash  
+import dash
 import dash_table
-import dash_core_components as dcc 
-import dash_html_components as html  
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output, State
 
 import forest_cui
 
@@ -91,7 +92,7 @@ def create_data(papers, analyze):
     data = [
         {
             'id':papers[k]['id'],
-            'year':papers[k]['publication']['year'],
+            'year':papers[k]['year'],
             'appearance_count':analyze[k]['appearance_count'],
             'citation_count':papers[k]['citation_count'],
             'title':papers[k]['title']
@@ -113,11 +114,11 @@ def create_data_forest(papers, analyze, forest):
             data.append({
                 'parent': parent['id'],
                 'p_title': parent['title'],
-                'p_year': parent['publication']['year'],
+                'p_year': parent['year'],
                 'p_appearance_count': parent_analyze['appearance_count'],
                 'p_citation_count': parent['citation_count'],
                 'id': child['id'],
-                'year': child['publication']['year'],
+                'year': child['year'],
                 'appearance_count': child_analyze['appearance_count'],
                 'citation_count': child['citation_count'],
                 'title': child['title']
@@ -158,6 +159,9 @@ def table_papers(papers, analyze):
     data = create_data(papers, analyze)
     return columns, data, style_cell_conditional
 
+def include_in(keyword, target):
+    return '●' if keyword in target else ''
+
 def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
     papers, analyze, forests = forest_cui.forest(
         keywords,
@@ -194,6 +198,11 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 id = 'appearance count',
                 figure = fig_appearance_cnt
             ),
+            html.H1('Compare Paper Info.',),
+            dcc.Input(id='input-paper-1', type='text', value='p-id-1'),
+            dcc.Input(id='input-paper-2', type='text', value='p-id-2'),
+            html.Button(id='compare-paper-button', n_clicks=0, children='Compare'),
+            html.Div(id='compare-paper-table'),
             html.H1('Papers Info. (Tier0)',),
             dash_table.DataTable(
                 id='papers-info-tier0',
@@ -215,4 +224,61 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 virtualization = True
             )
         ])
+
+    @app.callback(
+        Output('compare-paper-table', 'children'),
+        [
+            Input('compare-paper-button', 'n_clicks')
+        ],
+        [
+            State('input-paper-1', 'value'),
+            State('input-paper-2', 'value')
+        ]
+    )
+    def compare_paper(n_clicks, input1, input2):
+        p1 = papers[input1]
+        p2 = papers[input2]
+        a1 = analyze[input1]
+        a2 = analyze[input2]
+        uniq_refs = list(set(p1['references']) | set(p2['references']))
+        s = {
+            'border-style':'solid'
+        }
+        s1 = {
+            'border-style':'solid',
+            'width':'500px'
+        }
+        header = [
+            html.Tr([html.Th(val) for val in ['info', 'paper1', 'paper2'] ])
+        ]
+        body = [
+                html.Tr([html.Td('title', colSpan=2, style=s)] + [ html.Td(p['title'], style=s1) for p in [p1, p2]]),
+                html.Tr([html.Td('year', colSpan=2, style=s)] + [ html.Td(p['year'], style=s) for p in [p1, p2]]),
+                html.Tr([html.Td('appearance', colSpan=2, style=s)] + [ html.Td(a['appearance_count'], style=s) for a in [a1, a2]]),
+                html.Tr([html.Td('cited-by', colSpan=2, style=s)] + [ html.Td(p['citation_count'], style=s) for p in [p1, p2]])
+        ]
+        body_ref = []
+        if 0 < len(uniq_refs):
+            id = str(uniq_refs[0])
+            title = papers[id]['title'] if id in papers else 'Unknown'
+            body_ref.append(
+                html.Tr(
+                    html.Td('references', rowSpan=len(uniq_refs), style=s),
+                    html.Td(f"{uniq_refs[0]}:{title}", style=s1),
+                    html.Td(include_in(uniq_refs[0], p1['references']), style=s),
+                    html.Td(include_in(uniq_refs[0], p2['references']), style=s))
+            )
+        if 1 < len(uniq_refs):
+            for i in range(1, len(uniq_refs)):
+                id = str(uniq_refs[i])
+                title = papers[id]['title'] if id in papers else 'Unknown'
+                body_ref.append(
+                    html.Tr([
+                        html.Td(f"{uniq_refs[i]}:{title}", style=s1),
+                        html.Td(include_in(uniq_refs[i], p1['references']), style=s),
+                        html.Td(include_in(uniq_refs[i], p2['references']), style=s)])
+                )
+        return html.Table(header + body + body_ref)
+
     app.run_server(debug=False)
+
