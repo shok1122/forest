@@ -73,7 +73,7 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             forests = json.load(f)
         with open(f'{input_dir}/analyze.json', 'rt') as f:
             analyze = json.load(f)
-    return papers, analyze
+    return papers, analyze, forests
 
 if __name__=='__main__':
     forest(['blockchain', 'cyber physical system'])
