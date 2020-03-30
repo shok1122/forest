@@ -30,7 +30,7 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         title_keyword = 'Or(' + ','.join(title_keyword_tmp) + ')'
         field_keyword = field_keyword[:-1] + '))'
         title_keyword = title_keyword[:-1] + ')'
-        expr = f'And(Y>={year},Or({title_keyword},{field_keyword}))'
+        expr = f"And(Or(Pt=='1',Pt=='3'),Y>={year},Or({title_keyword},{field_keyword}))"
         attr = read_attribute('asset/attributes')
         with open('cache/subscription.key', 'rt') as f:
             token = f.read()
