@@ -202,8 +202,7 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 style_cell_conditional = tbl_papers_tier0_style,
                 sort_action = 'native',
                 export_format ='csv',
-                virtualization = True,
-                page_action = 'none'
+                virtualization = True
             ),
             html.H1('Papers Info. (All)',),
             dash_table.DataTable(
@@ -213,8 +212,7 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 style_cell_conditional = tbl_papers_all_style,
                 sort_action = 'native',
                 export_format ='csv',
-                virtualization = True,
-                page_action = 'none'
+                virtualization = True
             )
         ])
     app.run_server(debug=False)
