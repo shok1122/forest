@@ -3,6 +3,9 @@ from argparse import ArgumentParser
 import forest_cui
 import forest_gui
 
+# ------------------------------
+# parser
+# ------------------------------
 parser = ArgumentParser(
     prog = 'forest',
     usage = 'usage',
@@ -24,7 +27,14 @@ args = parser.parse_args()
 
 if args.mode == 'cui':
     print('mode: cui')
-    forest_cui.forest(args.keywords, args.count, args.rank, args.tier, args.output_dir, args.input_dir)
+    forest_cui.forest(
+        args.keywords,
+        count = args.count,
+        rank = args.rank,
+        year = args.year,
+        tier = args.tier,
+        output_dir = args.output_dir,
+        input_dir = args.input_dir)
 else:
     print('mode: gui')
     forest_gui.forest(
