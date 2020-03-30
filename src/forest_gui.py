@@ -2,6 +2,7 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
+import json
 from dash.dependencies import Input, Output, State
 
 import forest_cui
@@ -222,7 +223,13 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 sort_action = 'native',
                 export_format ='csv',
                 virtualization = True
-            )
+            ),
+            html.H1('Paper Info. (JSON)',),
+            dcc.Input(id='paper-info-json-input', type='text', value='0'),
+            html.Button(id='paper-info-json-button', n_clicks=0, children='Show'),
+            html.Div(id='paper-info-json'),
+
+            html.H1('__END__',)
         ])
 
     @app.callback(
@@ -279,6 +286,20 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                         html.Td(include_in(uniq_refs[i], p2['references']), style=s)])
                 )
         return html.Table(header + body + body_ref)
+    
+    @app.callback(
+        Output('paper-info-json', 'children'),
+        [
+            Input('paper-info-json-button', 'n_clicks')
+        ],
+        [
+            State('paper-info-json-input', 'value')
+        ]
+    )
+    def update_paper_info_json(n_clicks, paper_id):
+        return html.Table(html.Pre(
+            json.dumps(papers[paper_id], indent=4)
+            ))
 
     app.run_server(debug=False)
 
