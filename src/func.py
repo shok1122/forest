@@ -107,27 +107,28 @@ def publication_type(pt):
         'Repository'][pt]
 
 def parse_publication(e, p):
-    if 'Pt'  in e: p['pub-type'] = e['Pt']
-    if 'VFN' in e: p['pub-name_f'] = e['VFN']
-    if 'VSN' in e: p['pub-name_f'] = e['VSN']
-    if 'PB'  in e: p['publisher'] = e['PB']
-    if 'V'   in e: p['volume'] = e['V']
-    if 'Y'   in e: p['year'] = e['Y']
+    p['pub-type'] = e['Pt'] if 'Pt' in e else 'Unknown'
+    p['pub-name_f'] = e['VFN'] if 'VFN' in e else 'Unknown'
+    p['pub-name_s'] = e['VSN'] if 'VSN' in e else 'Unknown'
+    p['publisher'] = e['PB'] if 'PB' in e else 'Unknown'
+    p['volume'] = e['V'] if 'V' in e else 'Unknown'
+    p['year'] = e['Y'] if 'Y' in e else '1000'
 
 def parse_entities(entities, papers, forest):
     for e in entities:
         id = str(e['Id'])
         # papers
         p = {}
-        if 'IA' in e: p['abst'] = parse_abstract(e['IA'])
-        if 'AA' in e: p['authors'] = parse_authors(e['AA'])
-        if 'CC' in e: p['citation_count'] = e['CC']
-        if 'C'  in e: p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']}
-        if 'Id' in e: p['id'] = e['Id']
-        if 'J'  in e: p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']}
+        p['abst'] = parse_abstract(e['IA']) if 'IA' in e else 'Unknown'
+        p['authors'] = parse_authors(e['AA']) if 'AA' in e else 'Unknown'
+        p['citation_count'] = e['CC'] if 'CC' in e else 'Unknown'
+        p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']} if 'C' in e else 'Unknown'
+        p['id'] = e['Id'] if 'Id' in e else 'Unknown'
+        p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']} if 'J' in e else 'Unknown'
         parse_publication(e, p)
-        if 'DN'  in e: p['title'] = e['DN']
+        p['title'] = e['DN'] if 'DN' in e else 'Unknown'
         p['references'] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
+        p['citcon'] = e['CitCon'] if 'CitCon' in e else 'Unknown'
         papers[id] = p
         # forest
         forest[id] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []

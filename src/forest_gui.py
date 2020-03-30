@@ -94,6 +94,7 @@ def create_data(papers, analyze):
         {
             'id':papers[k]['id'],
             'year':papers[k]['year'],
+            'publication':papers[k]['pub-name_f'],
             'appearance_count':analyze[k]['appearance_count'],
             'citation_count':papers[k]['citation_count'],
             'title':papers[k]['title']
@@ -152,11 +153,12 @@ def table_papers(papers, analyze):
         create_columns('index'),
         create_columns('id'),
         create_columns('year'),
+        create_columns('publication'),
         create_columns('appearance_count'),
         create_columns('citation_count'),
         create_columns('title')
     ]
-    style_cell_conditional = create_style_cell_conditional(['title'])
+    style_cell_conditional = create_style_cell_conditional(['publication','title'])
     data = create_data(papers, analyze)
     return columns, data, style_cell_conditional
 
@@ -215,6 +217,9 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 virtualization = True
             ),
             html.H1('Papers Info. (All)',),
+            html.H2(
+                ' | '.join([x['name'] for x in tbl_papers_all_c])
+            ),
             dash_table.DataTable(
                 id='papers-info-all',
                 columns=tbl_papers_all_c,
