@@ -3,6 +3,7 @@ import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
 import json
+import pandas as pd
 from dash.dependencies import Input, Output, State
 
 import forest_cui
@@ -165,6 +166,30 @@ def table_papers(papers, analyze):
 def include_in(keyword, target):
     return '●' if keyword in target else ''
 
+def generate_table_html(df, style = {}):
+    return html.Table(
+        # Header
+        [html.Tr(
+            [html.Th('')] + [html.Th(col, style=style) for col in [f"paper{i}" for i in df.columns]])
+        ] +
+        # Body
+        [html.Tr(
+            [html.Td(df.index[i])] + [html.Td(df.iloc[i][col], style=style) for col in df.columns]
+        ) for i in range(len(df))]
+    )
+
+def generate_table(df, id):
+    return dash_table.DataTable(
+        id = id,
+        columns = [{'name':col,'id':col} for col in df.columns],
+        data = df.to_dict()
+    )
+
+def generate_columns(df):
+    return [
+        {'id':v, 'name':v} for v in df.columns
+    ]
+
 def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
     papers, analyze, forests = forest_cui.forest(
         keywords,
@@ -205,7 +230,16 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             dcc.Input(id='input-paper-1', type='text', value='p-id-1'),
             dcc.Input(id='input-paper-2', type='text', value='p-id-2'),
             html.Button(id='compare-paper-button', n_clicks=0, children='Compare'),
-            html.Div(id='compare-paper-table'),
+            html.Div(
+                dash_table.DataTable(
+                    id='compare-paper-table',
+                    style_cell={
+                        'height': 'auto',
+                        'minWidth': '0px', 'maxWidth': '180px',
+                        'whiteSpace': 'normal'
+                    }
+                )
+            ),
             html.H1('Papers Info. (Tier0)',),
             dash_table.DataTable(
                 id='papers-info-tier0',
@@ -238,7 +272,10 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         ])
 
     @app.callback(
-        Output('compare-paper-table', 'children'),
+        [
+            Output('compare-paper-table', 'data'),
+            Output('compare-paper-table', 'columns')
+        ],
         [
             Input('compare-paper-button', 'n_clicks')
         ],
@@ -248,49 +285,22 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         ]
     )
     def compare_paper(n_clicks, input1, input2):
-        p1 = papers[input1]
-        p2 = papers[input2]
-        a1 = analyze[input1]
-        a2 = analyze[input2]
-        uniq_refs = list(set(p1['references']) | set(p2['references']))
-        s = {
-            'border-style':'solid'
-        }
-        s1 = {
-            'border-style':'solid',
-            'width':'500px'
-        }
-        header = [
-            html.Tr([html.Th(val) for val in ['info', 'paper1', 'paper2'] ])
-        ]
-        body = [
-                html.Tr([html.Td('title', colSpan=2, style=s)] + [ html.Td(p['title'], style=s1) for p in [p1, p2]]),
-                html.Tr([html.Td('year', colSpan=2, style=s)] + [ html.Td(p['year'], style=s) for p in [p1, p2]]),
-                html.Tr([html.Td('appearance', colSpan=2, style=s)] + [ html.Td(a['appearance_count'], style=s) for a in [a1, a2]]),
-                html.Tr([html.Td('cited-by', colSpan=2, style=s)] + [ html.Td(p['citation_count'], style=s) for p in [p1, p2]])
-        ]
-        body_ref = []
-        if 0 < len(uniq_refs):
-            id = str(uniq_refs[0])
-            title = papers[id]['title'] if id in papers else 'Unknown'
-            body_ref.append(
-                html.Tr(
-                    html.Td('references', rowSpan=len(uniq_refs), style=s),
-                    html.Td(f"{uniq_refs[0]}:{title}", style=s1),
-                    html.Td(include_in(uniq_refs[0], p1['references']), style=s),
-                    html.Td(include_in(uniq_refs[0], p2['references']), style=s))
-            )
-        if 1 < len(uniq_refs):
-            for i in range(1, len(uniq_refs)):
-                id = str(uniq_refs[i])
-                title = papers[id]['title'] if id in papers else 'Unknown'
-                body_ref.append(
-                    html.Tr([
-                        html.Td(f"{uniq_refs[i]}:{title}", style=s1),
-                        html.Td(include_in(uniq_refs[i], p1['references']), style=s),
-                        html.Td(include_in(uniq_refs[i], p2['references']), style=s)])
-                )
-        return html.Table(header + body + body_ref)
+        p1 = { k: str(papers[input1][k]) for k in papers[input1] }
+        p2 = { k: str(papers[input2][k]) for k in papers[input2] }
+        df = pd.DataFrame({
+            k : [p1[k],p2[k]] for k in p1
+        })
+        #table =  generate_table(df.T, 'compare-table')
+        df = df.T
+        columns =  generate_columns(df)
+        columns.insert(0, {'id':'info','name':'info'})
+        data = df.to_dict('records')
+        for i in range(len(data)):
+            data[i]['info'] = df.index[i]
+
+        print(columns)
+        print(data)
+        return data, columns
     
     @app.callback(
         Output('paper-info-json', 'children'),
