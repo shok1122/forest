@@ -253,7 +253,7 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             html.Div(
                 id='abst-text'
             ),
-            html.H1('Keyword Search',),
+            html.H1('Keyword Search (SEP:,)',),
             dcc.Input(id='keyword-search-input', type='text', value='keyword'),
             html.Button(id='keyword-search-button', children='Search'),
             html.Div(
@@ -361,14 +361,19 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             State('keyword-search-input', 'value'),
         ]
     )
-    def update_search_paper_table(n_clicks, input):
+    def update_search_paper_table(n_clicks, inputs):
         result = []
-        for id in papers:
-            if input.lower() not in papers[id]['title']: continue
-            if input.lower() not in papers[id]['abst']: continue
-            result.append(
-                paper_to_str(papers[id], exclude=['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
-            )
+        id_list = []
+        for input in inputs.split(','):
+            print(input)
+            for id in papers:
+                if input.lower() not in papers[id]['title'].lower(): continue
+                if input.lower() not in papers[id]['abst'].lower(): continue
+                if id in id_list: continue
+                result.append(
+                    paper_to_str(papers[id], exclude=['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
+                )
+                id_list.append(id)
         df = pd.DataFrame(result)
         data, columns = generate_table(df)
         return data, columns
