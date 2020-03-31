@@ -232,6 +232,18 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
     # graph
     dcc.Graph()
     # appという箱に中身を詰める②
+    default_table_settings = {
+        'style_cell': {
+            'height': 'auto',
+            'whiteSpace': 'normal'
+        },
+        'style_table': {
+            'maxHeight': '600px',
+            'overflowY': 'scroll'
+        },
+        'sort_action': 'native',
+        'export_format': 'csv'
+    }
     app.layout = html.Div(
         children =[
             html.H1('Hello Dash',),
@@ -258,14 +270,8 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             html.Button(id='keyword-search-button', children='Search'),
             html.Div(
                 dash_table.DataTable(
-                    id='keyword-search-table',
-                    style_cell={
-                        'height': 'auto',
-                        'minWidth': '0px', 'maxWidth': '180px',
-                        'whiteSpace': 'normal'
-                    },
-                    sort_action = 'native',
-                    export_format ='csv'
+                    **default_table_settings,
+                    id='keyword-search-table'
                 )
             ),
             html.H1('Compare Paper Info.',),
@@ -274,36 +280,28 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             html.Button(id='compare-paper-button', n_clicks=0, children='Compare'),
             html.Div(
                 dash_table.DataTable(
-                    id='compare-paper-table',
-                    style_cell={
-                        'height': 'auto',
-                        'minWidth': '0px', 'maxWidth': '180px',
-                        'whiteSpace': 'normal'
-                    }
+                    **default_table_settings,
+                    id='compare-paper-table'
                 )
             ),
             html.H1('Papers Info. (Tier0)',),
             dash_table.DataTable(
+                **default_table_settings,
                 id='papers-info-tier0',
                 columns=tbl_papers_tier0_c,
                 data=tbl_papers_tier0_d,
-                style_cell_conditional = tbl_papers_tier0_style,
-                sort_action = 'native',
-                export_format ='csv',
-                virtualization = True
+                style_cell_conditional = tbl_papers_tier0_style
             ),
             html.H1('Papers Info. (All)',),
             html.H2(
                 ' | '.join([x['name'] for x in tbl_papers_all_c])
             ),
             dash_table.DataTable(
+                **default_table_settings,
                 id='papers-info-all',
                 columns=tbl_papers_all_c,
                 data=tbl_papers_all_d,
-                style_cell_conditional = tbl_papers_all_style,
-                sort_action = 'native',
-                export_format ='csv',
-                virtualization = True
+                style_cell_conditional = tbl_papers_all_style
             ),
             html.H1('Paper Info. (JSON)',),
             dcc.Input(id='paper-info-json-input', type='text', value='0'),
