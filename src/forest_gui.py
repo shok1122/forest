@@ -178,17 +178,38 @@ def generate_table_html(df, style = {}):
         ) for i in range(len(df))]
     )
 
-def generate_table(df, id):
-    return dash_table.DataTable(
-        id = id,
-        columns = [{'name':col,'id':col} for col in df.columns],
-        data = df.to_dict()
-    )
-
 def generate_columns(df):
     return [
         {'id':v, 'name':v} for v in df.columns
     ]
+
+def generate_table(df):
+    columns =  generate_columns(df)
+    data = df.to_dict('records')
+    return data, columns
+
+def generate_table_transpose(df):
+    df = df.T
+    columns =  generate_columns(df)
+    columns.insert(0, {'id':'info','name':'info'})
+    data = df.to_dict('records')
+    for i in range(len(data)):
+        data[i]['info'] = df.index[i]
+    return data, columns
+
+def paper_to_str(paper, exclude = []):
+    retval = {}
+    for k in paper:
+        if k in exclude: continue
+        s = ''
+        if k == 'authors':
+            s = ','.join(list(map(lambda x: x['name'], paper[k])))
+        elif k == 'conference' and 'Unknown' != paper[k]:
+            s = paper[k]['name']
+        else:
+            s = str(paper[k])
+        retval[k] = s
+    return retval
 
 def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
     papers, analyze, forests = forest_cui.forest(
@@ -225,6 +246,27 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             dcc.Graph(
                 id = 'appearance count',
                 figure = fig_appearance_cnt
+            ),
+            html.H1('Abstract',),
+            dcc.Input(id='abst-input', type='text', value='paperid'),
+            html.Button(id='abst-button', children='Search'),
+            html.Div(
+                id='abst-text'
+            ),
+            html.H1('Keyword Search',),
+            dcc.Input(id='keyword-search-input', type='text', value='keyword'),
+            html.Button(id='keyword-search-button', children='Search'),
+            html.Div(
+                dash_table.DataTable(
+                    id='keyword-search-table',
+                    style_cell={
+                        'height': 'auto',
+                        'minWidth': '0px', 'maxWidth': '180px',
+                        'whiteSpace': 'normal'
+                    },
+                    sort_action = 'native',
+                    export_format ='csv'
+                )
             ),
             html.H1('Compare Paper Info.',),
             dcc.Input(id='input-paper-1', type='text', value='p-id-1'),
@@ -290,7 +332,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         df = pd.DataFrame({
             k : [p1[k],p2[k]] for k in p1
         })
-        #table =  generate_table(df.T, 'compare-table')
         df = df.T
         columns =  generate_columns(df)
         columns.insert(0, {'id':'info','name':'info'})
@@ -298,8 +339,38 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         for i in range(len(data)):
             data[i]['info'] = df.index[i]
 
-        print(columns)
-        print(data)
+        return data, columns
+
+    @app.callback(
+        Output('abst-text', 'children'),
+        [ Input('abst-button', 'n_clicks') ],
+        [ State('abst-input', 'value') ]
+    )
+    def update_abst_text(n_clicks, input):
+        return papers[input]['abst'] if input in papers else "Unknown"
+
+    @app.callback(
+        [
+            Output('keyword-search-table', 'data'),
+            Output('keyword-search-table', 'columns')
+        ],
+        [
+            Input('keyword-search-button', 'n_clicks')
+        ],
+        [
+            State('keyword-search-input', 'value'),
+        ]
+    )
+    def update_search_paper_table(n_clicks, input):
+        result = []
+        for id in papers:
+            if input.lower() not in papers[id]['title']: continue
+            if input.lower() not in papers[id]['abst']: continue
+            result.append(
+                paper_to_str(papers[id], exclude=['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
+            )
+        df = pd.DataFrame(result)
+        data, columns = generate_table(df)
         return data, columns
     
     @app.callback(
