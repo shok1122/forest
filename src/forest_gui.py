@@ -259,6 +259,9 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                 id = 'appearance count',
                 figure = fig_appearance_cnt
             ),
+            html.H1('Link',),
+            dcc.Input(id='link-input', type='text', value='paperid'),
+            html.A('Microsoft Academic', id='link-url', href = 'https://academic.microsoft.com/paper/2103863878'),
             html.H1('Abstract',),
             dcc.Input(id='abst-input', type='text', value='paperid'),
             html.Button(id='abst-button', children='Search'),
@@ -310,6 +313,19 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
 
             html.H1('__END__',)
         ])
+
+    @app.callback(
+        [
+            Output('link-url', 'children'),
+            Output('link-url', 'href')
+        ],
+        [
+            Input('link-input', 'value')
+        ]
+    )
+    def update_link(input):
+        url = f'https://academic.microsoft.com/paper/{input}'
+        return url, url
 
     @app.callback(
         [
