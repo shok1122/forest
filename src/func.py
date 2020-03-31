@@ -106,14 +106,6 @@ def publication_type(pt):
         'Dataset',
         'Repository'][pt]
 
-def parse_publication(e, p):
-    p['pub-type'] = e['Pt'] if 'Pt' in e else 'Unknown'
-    p['pub-name_f'] = e['VFN'] if 'VFN' in e else 'Unknown'
-    p['pub-name_s'] = e['VSN'] if 'VSN' in e else 'Unknown'
-    p['publisher'] = e['PB'] if 'PB' in e else 'Unknown'
-    p['volume'] = e['V'] if 'V' in e else 'Unknown'
-    p['year'] = e['Y'] if 'Y' in e else '1000'
-
 def parse_entities(entities, papers, forest):
     for e in entities:
         id = str(e['Id'])
@@ -124,8 +116,14 @@ def parse_entities(entities, papers, forest):
         p['citation_count'] = e['CC'] if 'CC' in e else 'Unknown'
         p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']} if 'C' in e else 'Unknown'
         p['id'] = e['Id'] if 'Id' in e else 'Unknown'
-        p['journal'] = {'id':e['J']['JId'],'name':e['J']['JN']} if 'J' in e else 'Unknown'
-        parse_publication(e, p)
+        p['journal-id'] = e['J']['JId'] if 'J' in e and 'JId' in e else 'Unknown'
+        p['journal-name'] = e['J']['JN'] if 'J' in e and 'JN' in e else 'Unknown'
+        p['pub-type'] = e['Pt'] if 'Pt' in e else 'Unknown'
+        p['pub-name_f'] = e['VFN'] if 'VFN' in e else 'Unknown'
+        p['pub-name_s'] = e['VSN'] if 'VSN' in e else 'Unknown'
+        p['publisher'] = e['PB'] if 'PB' in e else 'Unknown'
+        p['volume'] = e['V'] if 'V' in e else 'Unknown'
+        p['year'] = e['Y'] if 'Y' in e else '1000'
         p['title'] = e['DN'] if 'DN' in e else 'Unknown'
         p['references'] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
         p['citcon'] = e['CitCon'] if 'CitCon' in e else 'Unknown'
