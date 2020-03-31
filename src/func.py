@@ -113,7 +113,7 @@ def parse_entities(entities, papers, forest):
         p = {}
         p['abst'] = parse_abstract(e['IA']) if 'IA' in e else 'Unknown'
         p['authors'] = parse_authors(e['AA']) if 'AA' in e else 'Unknown'
-        p['citation_count'] = e['CC'] if 'CC' in e else 'Unknown'
+        p['citation_count'] = int(e['CC']) if 'CC' in e else 'Unknown'
         p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']} if 'C' in e else 'Unknown'
         p['id'] = e['Id'] if 'Id' in e else 'Unknown'
         p['journal-id'] = e['J']['JId'] if 'J' in e and 'JId' in e else 'Unknown'
@@ -122,8 +122,8 @@ def parse_entities(entities, papers, forest):
         p['pub-name_f'] = e['VFN'] if 'VFN' in e else 'Unknown'
         p['pub-name_s'] = e['VSN'] if 'VSN' in e else 'Unknown'
         p['publisher'] = e['PB'] if 'PB' in e else 'Unknown'
-        p['volume'] = e['V'] if 'V' in e else 'Unknown'
-        p['year'] = e['Y'] if 'Y' in e else '1000'
+        p['volume'] = int(e['V']) if 'V' in e else 'Unknown'
+        p['year'] = int(e['Y']) if 'Y' in e else '1000'
         p['title'] = e['DN'] if 'DN' in e else 'Unknown'
         p['references'] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
         p['citcon'] = e['CitCon'] if 'CitCon' in e else 'Unknown'
