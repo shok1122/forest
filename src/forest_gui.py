@@ -8,73 +8,27 @@ from dash.dependencies import Input, Output, State
 
 import forest_cui
 
-def figure_citation_count(papers, keys):
-    X = [0] * len(keys)
+def create_XY(data, get_Y):
+    id_list = list(data.keys())
+    id_list.sort()
+    X = list(map(lambda a: 'id:'+a, id_list))
     Y = []
-    for x in keys:
-        Y.append(str(papers[x]['citation_count']))
-    for i in range(len(keys)):
-        X[i] = 'id:' + keys[i]
-    fig = {
+    for id in id_list:
+        Y.append(get_Y(data[id]))
+    return { 'X': X, 'Y': Y }
+
+def create_bar_graph(name, X, Y):
+    return {
         'data': [
             {
                 'x': X,
                 'y': Y,
                 'type': 'bar',
-                'name': 'paper id'
+                'name': name
             }
         ],
-        'layout': {
-            'title': 'citation count'
-        }
     }
-    return fig
-
-def figure_reference_count(papers, keys):
-    X = [0] * len(keys)
-    Y = []
-    for x in keys:
-        Y.append(len(papers[x]['references']))
-    for i in range(len(keys)):
-        X[i] = 'id:' + keys[i]
-    fig = {
-        'data': [
-            {
-                'x': X,
-                'y': Y,
-                'type': 'bar',
-                'name': 'paper id'
-            }
-        ],
-        'layout': {
-            'title': 'reference count'
-        }
-    }
-    return fig
-
-def figure_appearance_count(analyze, keys):
-    X = [0] * len(keys)
-    Y = []
-    for x in keys:
-        if x in analyze:
-            Y.append(analyze[x]['appearance_count'])
-    for i in range(len(keys)):
-        X[i] = 'id:' + keys[i]
-    fig = {
-        'data': [
-            {
-                'x': X,
-                'y': Y,
-                'type': 'bar',
-                'name': 'paper id'
-            }
-        ],
-        'layout': {
-            'title': 'appearance count'
-        }
-    }
-    return fig
-
+        
 def create_columns(name):
     columns = {
         'id':name,
@@ -222,9 +176,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         input_dir = input_dir)
     keys = list(papers.keys())
     keys.sort()
-    fig_cit_cnt = figure_citation_count(papers, keys)
-    fig_ref_cnt = figure_reference_count(papers, keys)
-    fig_appearance_cnt = figure_appearance_count(analyze, keys)
     tbl_papers_tier0_c, tbl_papers_tier0_d, tbl_papers_tier0_style = table_forest(papers, analyze, forests[0])
     tbl_papers_all_c, tbl_papers_all_d, tbl_papers_all_style = table_papers(papers, analyze)
     # appという箱作り
@@ -244,20 +195,65 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         'sort_action': 'native',
         'export_format': 'csv'
     }
+    graph_title_style = {
+        'textAlign': 'center'
+    }
+    graph_info_style = {
+        'textAlign': 'center',
+        'color': 'limegreen'
+    }
+    XY_graph_citation_count = create_XY(papers, lambda p: p['citation_count'])
+    XY_graph_reference_count = create_XY(papers, lambda p: len(p['references']))
+    XY_graph_appearance_count = create_XY(analyze, lambda a: a['appearance_count'])
+    figure_citation_count = create_bar_graph(
+        name = 'graph-citation-count',
+        **XY_graph_citation_count 
+    )
+    figure_reference_count = create_bar_graph(
+        name = 'graph-reference-count',
+        **XY_graph_reference_count
+    )
+    figure_appearance_count = create_bar_graph(
+        name = 'graph-appearance-count',
+        **XY_graph_appearance_count
+    )
     app.layout = html.Div(
         children =[
-            html.H1('Hello Dash',),
-            dcc.Graph(
-                id = 'citation count',
-                figure = fig_cit_cnt
+            html.Div(
+                html.H1('citation count'),
+                style = graph_title_style
+            ),
+            html.Div(
+                html.H2(id='graph-info-citation-count'),
+                style = graph_info_style
             ),
             dcc.Graph(
-                id = 'reference count',
-                figure = fig_ref_cnt
+                id = 'graph-citation-count',
+                figure = figure_citation_count
+            ),
+            html.Div(
+                html.H1('reference count'),
+                style = graph_title_style
+            ),
+            html.Div(
+                html.H2(id='graph-info-reference-count'),
+                style = graph_info_style
             ),
             dcc.Graph(
-                id = 'appearance count',
-                figure = fig_appearance_cnt
+                id = 'graph-reference-count',
+                figure = figure_reference_count
+            ),
+            html.Div(
+                html.H1('appearance count'),
+                style = graph_title_style
+            ),
+            html.Div(
+                html.H2(id='graph-info-appearance-count'),
+                style = graph_info_style
+            ),
+            dcc.Graph(
+                id = 'graph-appearance-count',
+                figure = figure_appearance_count
             ),
             html.H1('Link',),
             dcc.Input(id='link-input', type='text', value='paperid'),
@@ -313,6 +309,33 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
 
             html.H1('__END__',)
         ])
+
+    @app.callback(
+        Output('graph-info-reference-count', 'children'),
+        [
+            Input('graph-reference-count', 'hoverData')
+        ]
+    )
+    def update_graph_info_reference_count(hoverData):
+        return str(hoverData['points'][0]['x'])
+
+    @app.callback(
+        Output('graph-info-citation-count', 'children'),
+        [
+            Input('graph-citation-count', 'hoverData')
+        ]
+    )
+    def update_graph_info_citation_count(hoverData):
+        return str(hoverData['points'][0]['x'])
+
+    @app.callback(
+        Output('graph-info-appearance-count', 'children'),
+        [
+            Input('graph-appearance-count', 'hoverData')
+        ]
+    )
+    def update_graph_info_appearance_count(hoverData):
+        return str(hoverData['points'][0]['x'])
 
     @app.callback(
         [
