@@ -1,3 +1,4 @@
+import copy
 import dash
 import dash_table
 import dash_core_components as dcc
@@ -120,15 +121,13 @@ def create_paper_info(paper, exclude = []):
         retval[k] = s
     return retval
 
-def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
-    papers = forest_cui.forest(
-        keywords,
-        count = count,
-        rank = rank,
-        year = year,
-        tier = tier,
-        output_dir = output_dir,
-        input_dir = input_dir)
+def forest(cache_dir):
+
+    papers = dict()
+    papers = forest_cui.load_papers(
+        papers,
+        cache_dir)
+
     keys = list(papers.keys())
     keys.sort()
     tbl_papers_all_c, tbl_papers_all_d, tbl_papers_all_style = table_papers(papers)
@@ -156,42 +155,19 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         'textAlign': 'center',
         'color': 'limegreen'
     }
-    XY_graph_citation_count = create_XY(papers, lambda p: p['citation_count'])
-    XY_graph_reference_count = create_XY(papers, lambda p: len(p['references']))
-    figure_citation_count = create_bar_graph(
-        name = 'graph-citation-count',
-        **XY_graph_citation_count 
-    )
-    figure_reference_count = create_bar_graph(
-        name = 'graph-reference-count',
-        **XY_graph_reference_count
-    )
     app.layout = html.Div(
         children =[
-#            html.Div(
-#                html.H1('citation count'),
-#                style = graph_title_style
-#            ),
-#            html.Div(
-#                html.H2(id='graph-info-citation-count'),
-#                style = graph_info_style
-#            ),
-#            dcc.Graph(
-#                id = 'graph-citation-count',
-#                figure = figure_citation_count
-#            ),
-#            html.Div(
-#                html.H1('reference count'),
-#                style = graph_title_style
-#            ),
-#            html.Div(
-#                html.H2(id='graph-info-reference-count'),
-#                style = graph_info_style
-#            ),
-#            dcc.Graph(
-#                id = 'graph-reference-count',
-#                figure = figure_reference_count
-#            ),
+            html.Div(
+                html.H1('Fetch Papers')
+            ),
+            dcc.Input(id='fetch-paper-keywords', type='text', value=''),
+            dcc.Input(id='fetch-paper-year', type='text', value='2019'),
+            dcc.Input(id='fetch-paper-count', type='text', value='1000'),
+            dcc.Input(id='fetch-paper-token', type='text', value=''),
+            html.Button(id='fetch-paper-button', children='Fetch'),
+            html.Div(
+                id = 'fetch-paper-result'
+            ),
             html.H1('Link',),
             dcc.Input(id='link-input', type='text', value='paperid'),
             html.A('Microsoft Academic', id='link-url', href = 'https://academic.microsoft.com/paper/2103863878'),
@@ -239,24 +215,37 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             html.H1('__END__',)
         ])
 
-#    @app.callback(
-#        Output('graph-info-reference-count', 'children'),
-#        [
-#            Input('graph-reference-count', 'hoverData')
-#        ]
-#    )
-#    def update_graph_info_reference_count(hoverData):
-#        return str(hoverData['points'][0]['x'])
-#
-#    @app.callback(
-#        Output('graph-info-citation-count', 'children'),
-#        [
-#            Input('graph-citation-count', 'hoverData')
-#        ]
-#    )
-#    def update_graph_info_citation_count(hoverData):
-#        return str(hoverData['points'][0]['x'])
-#
+    @app.callback(
+        [
+            Output('fetch-paper-result', 'children'),
+            Output('papers-info-all', 'data')
+        ],
+        [
+            Input('fetch-paper-button', 'n_clicks')
+        ],
+        [
+            State('fetch-paper-keywords', 'value'),
+            State('fetch-paper-year', 'value'),
+            State('fetch-paper-count', 'value'),
+            State('fetch-paper-token', 'value'),
+        ]
+    )
+    def fetch_paper(n_clicks, keywords, year, count, token):
+        # ignore blank keywords
+        if 0 == len(keywords): return
+        keyword_list = keywords.split(',')
+        
+        fetch_papers = forest_cui.fetch_papers(keyword_list, year, count, token, cache_dir)
+
+        new_papers = []
+        for k in fetch_papers:
+            if k not in papers:
+                papers[k] = copy.deepcopy(fetch_papers[k])
+                new_papers.append(k)
+        
+        c, d, s = table_papers(papers)
+
+        return f"append-count: {len(new_papers)}, {','.join(new_papers)}", d
 
     @app.callback(
         [
@@ -296,7 +285,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         data = df.to_dict('records')
         for i in range(len(data)):
             data[i]['info'] = df.index[i]
-
         return data, columns
 
     @app.callback(

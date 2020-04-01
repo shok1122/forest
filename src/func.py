@@ -1,52 +1,5 @@
 import requests
 
-class Author:
-    def __init__(self):
-        self.name = ''
-        self.affiliation = ''
-
-class Conference:
-    def __init__(self):
-        self.id = -1
-        self.name = ''
-
-class Journal:
-    def __init__(self):
-        self.id = -1
-        self.name = ''
-
-class Publication:
-    def __init__(self):
-        self.type = ''
-        self.name_f = ''
-        self.name_s = ''
-        self.publisher = ''
-        self.volume = -1
-        self.year = -1
-
-class Paper:
-    def __init__(self):
-        self.tier = -1
-        self.title = ''
-        self.id = -1
-        self.authors = []
-        self.citation_count = -1
-        self.abstract = ''
-        self.conference = Conference()
-        self.journal = Journal()
-        self.publication = Publication()
-        self.references = []
-
-class Branch:
-    def __init__(self):
-        self.id = -1
-        self.branches = []
-
-class Tree:
-    def __init__(self):
-        self.id = -1
-        self.branches = []
-
 def invoke_api(url, headers):
 
     response = requests.get(
