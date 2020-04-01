@@ -65,7 +65,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             json.dump(forests, f)
         with open(f'{output_dir}/analyze.json', 'wt') as f:
             json.dump(analyze, f)
-        
     else:
         with open(f'{input_dir}/papers.json', 'rt') as f:
             papers = json.load(f)

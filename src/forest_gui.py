@@ -151,7 +151,7 @@ def generate_table_transpose(df):
         data[i]['info'] = df.index[i]
     return data, columns
 
-def paper_to_str(paper, exclude = []):
+def create_paper_info(paper, exclude = []):
     retval = {}
     for k in paper:
         if k in exclude: continue
@@ -161,7 +161,7 @@ def paper_to_str(paper, exclude = []):
         elif k == 'conference' and 'Unknown' != paper[k]:
             s = paper[k]['name']
         else:
-            s = str(paper[k])
+            s = paper[k]
         retval[k] = s
     return retval
 
@@ -219,42 +219,42 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
     )
     app.layout = html.Div(
         children =[
-            html.Div(
-                html.H1('citation count'),
-                style = graph_title_style
-            ),
-            html.Div(
-                html.H2(id='graph-info-citation-count'),
-                style = graph_info_style
-            ),
-            dcc.Graph(
-                id = 'graph-citation-count',
-                figure = figure_citation_count
-            ),
-            html.Div(
-                html.H1('reference count'),
-                style = graph_title_style
-            ),
-            html.Div(
-                html.H2(id='graph-info-reference-count'),
-                style = graph_info_style
-            ),
-            dcc.Graph(
-                id = 'graph-reference-count',
-                figure = figure_reference_count
-            ),
-            html.Div(
-                html.H1('appearance count'),
-                style = graph_title_style
-            ),
-            html.Div(
-                html.H2(id='graph-info-appearance-count'),
-                style = graph_info_style
-            ),
-            dcc.Graph(
-                id = 'graph-appearance-count',
-                figure = figure_appearance_count
-            ),
+#            html.Div(
+#                html.H1('citation count'),
+#                style = graph_title_style
+#            ),
+#            html.Div(
+#                html.H2(id='graph-info-citation-count'),
+#                style = graph_info_style
+#            ),
+#            dcc.Graph(
+#                id = 'graph-citation-count',
+#                figure = figure_citation_count
+#            ),
+#            html.Div(
+#                html.H1('reference count'),
+#                style = graph_title_style
+#            ),
+#            html.Div(
+#                html.H2(id='graph-info-reference-count'),
+#                style = graph_info_style
+#            ),
+#            dcc.Graph(
+#                id = 'graph-reference-count',
+#                figure = figure_reference_count
+#            ),
+#            html.Div(
+#                html.H1('appearance count'),
+#                style = graph_title_style
+#            ),
+#            html.Div(
+#                html.H2(id='graph-info-appearance-count'),
+#                style = graph_info_style
+#            ),
+#            dcc.Graph(
+#                id = 'graph-appearance-count',
+#                figure = figure_appearance_count
+#            ),
             html.H1('Link',),
             dcc.Input(id='link-input', type='text', value='paperid'),
             html.A('Microsoft Academic', id='link-url', href = 'https://academic.microsoft.com/paper/2103863878'),
@@ -310,32 +310,32 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
             html.H1('__END__',)
         ])
 
-    @app.callback(
-        Output('graph-info-reference-count', 'children'),
-        [
-            Input('graph-reference-count', 'hoverData')
-        ]
-    )
-    def update_graph_info_reference_count(hoverData):
-        return str(hoverData['points'][0]['x'])
-
-    @app.callback(
-        Output('graph-info-citation-count', 'children'),
-        [
-            Input('graph-citation-count', 'hoverData')
-        ]
-    )
-    def update_graph_info_citation_count(hoverData):
-        return str(hoverData['points'][0]['x'])
-
-    @app.callback(
-        Output('graph-info-appearance-count', 'children'),
-        [
-            Input('graph-appearance-count', 'hoverData')
-        ]
-    )
-    def update_graph_info_appearance_count(hoverData):
-        return str(hoverData['points'][0]['x'])
+#    @app.callback(
+#        Output('graph-info-reference-count', 'children'),
+#        [
+#            Input('graph-reference-count', 'hoverData')
+#        ]
+#    )
+#    def update_graph_info_reference_count(hoverData):
+#        return str(hoverData['points'][0]['x'])
+#
+#    @app.callback(
+#        Output('graph-info-citation-count', 'children'),
+#        [
+#            Input('graph-citation-count', 'hoverData')
+#        ]
+#    )
+#    def update_graph_info_citation_count(hoverData):
+#        return str(hoverData['points'][0]['x'])
+#
+#    @app.callback(
+#        Output('graph-info-appearance-count', 'children'),
+#        [
+#            Input('graph-appearance-count', 'hoverData')
+#        ]
+#    )
+#    def update_graph_info_appearance_count(hoverData):
+#        return str(hoverData['points'][0]['x'])
 
     @app.callback(
         [
@@ -402,13 +402,12 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         result = []
         id_list = []
         for input in inputs.split(','):
-            print(input)
             for id in papers:
                 if input.lower() not in papers[id]['title'].lower(): continue
                 if input.lower() not in papers[id]['abst'].lower(): continue
                 if id in id_list: continue
                 result.append(
-                    paper_to_str(papers[id], exclude=['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
+                    create_paper_info(papers[id], exclude = ['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
                 )
                 id_list.append(id)
         df = pd.DataFrame(result)
