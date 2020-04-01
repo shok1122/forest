@@ -106,7 +106,7 @@ def publication_type(pt):
         'Dataset',
         'Repository'][pt]
 
-def parse_entities(entities, papers, forest):
+def parse_entities(entities, papers):
     for e in entities:
         id = str(e['Id'])
         # papers
@@ -128,5 +128,3 @@ def parse_entities(entities, papers, forest):
         p['references'] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
         p['citcon'] = e['CitCon'] if 'CitCon' in e else 'Unknown'
         papers[id] = p
-        # forest
-        forest[id] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []

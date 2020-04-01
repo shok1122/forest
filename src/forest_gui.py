@@ -44,13 +44,12 @@ def create_style_cell_conditional(name_columns):
         } for c in name_columns
     ]
 
-def create_data(papers, analyze):
+def create_data(papers):
     data = [
         {
             'id':papers[k]['id'],
             'year':papers[k]['year'],
             'publication':papers[k]['pub-name_f'],
-            'appearance_count':analyze[k]['appearance_count'],
             'citation_count':papers[k]['citation_count'],
             'title':papers[k]['title']
         } for k in papers
@@ -60,61 +59,17 @@ def create_data(papers, analyze):
         v['index'] = i
     return data
 
-def create_data_forest(papers, analyze, forest):
-    data = []
-    for parent_id in forest:
-        parent = papers[parent_id]
-        parent_analyze = analyze[parent_id]
-        for child_id in forest[parent_id]:
-            child = papers[child_id]
-            child_analyze = analyze[child_id]
-            data.append({
-                'parent': parent['id'],
-                'p_title': parent['title'],
-                'p_year': parent['year'],
-                'p_appearance_count': parent_analyze['appearance_count'],
-                'p_citation_count': parent['citation_count'],
-                'id': child['id'],
-                'year': child['year'],
-                'appearance_count': child_analyze['appearance_count'],
-                'citation_count': child['citation_count'],
-                'title': child['title']
-            })
-    data.sort(key = lambda x: x['parent'])
-    for i,v in enumerate(data):
-        v['index'] = i
-    return data
-
-def table_forest(papers, analyze, forest):
-    columns = [
-        create_columns('index'),
-        create_columns('parent'),
-        create_columns('p_title'),
-        create_columns('p_year'),
-        create_columns('p_appearance_count'),
-        create_columns('p_citation_count'),
-        create_columns('id'),
-        create_columns('year'),
-        create_columns('appearance_count'),
-        create_columns('citation_count'),
-        create_columns('title')
-    ]
-    style_cell_conditional = create_style_cell_conditional(['p_title','title'])
-    data = create_data_forest(papers, analyze, forest)
-    return columns, data, style_cell_conditional
-
-def table_papers(papers, analyze):
+def table_papers(papers):
     columns = [
         create_columns('index'),
         create_columns('id'),
         create_columns('year'),
         create_columns('publication'),
-        create_columns('appearance_count'),
         create_columns('citation_count'),
         create_columns('title')
     ]
     style_cell_conditional = create_style_cell_conditional(['publication','title'])
-    data = create_data(papers, analyze)
+    data = create_data(papers)
     return columns, data, style_cell_conditional
 
 def include_in(keyword, target):
@@ -166,7 +121,7 @@ def create_paper_info(paper, exclude = []):
     return retval
 
 def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir = 'cache', input_dir = None):
-    papers, analyze, forests = forest_cui.forest(
+    papers = forest_cui.forest(
         keywords,
         count = count,
         rank = rank,
@@ -176,8 +131,7 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
         input_dir = input_dir)
     keys = list(papers.keys())
     keys.sort()
-    tbl_papers_tier0_c, tbl_papers_tier0_d, tbl_papers_tier0_style = table_forest(papers, analyze, forests[0])
-    tbl_papers_all_c, tbl_papers_all_d, tbl_papers_all_style = table_papers(papers, analyze)
+    tbl_papers_all_c, tbl_papers_all_d, tbl_papers_all_style = table_papers(papers)
     # appという箱作り
     app = dash.Dash(__name__)
     # graph
@@ -204,7 +158,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
     }
     XY_graph_citation_count = create_XY(papers, lambda p: p['citation_count'])
     XY_graph_reference_count = create_XY(papers, lambda p: len(p['references']))
-    XY_graph_appearance_count = create_XY(analyze, lambda a: a['appearance_count'])
     figure_citation_count = create_bar_graph(
         name = 'graph-citation-count',
         **XY_graph_citation_count 
@@ -212,10 +165,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
     figure_reference_count = create_bar_graph(
         name = 'graph-reference-count',
         **XY_graph_reference_count
-    )
-    figure_appearance_count = create_bar_graph(
-        name = 'graph-appearance-count',
-        **XY_graph_appearance_count
     )
     app.layout = html.Div(
         children =[
@@ -242,18 +191,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
 #            dcc.Graph(
 #                id = 'graph-reference-count',
 #                figure = figure_reference_count
-#            ),
-#            html.Div(
-#                html.H1('appearance count'),
-#                style = graph_title_style
-#            ),
-#            html.Div(
-#                html.H2(id='graph-info-appearance-count'),
-#                style = graph_info_style
-#            ),
-#            dcc.Graph(
-#                id = 'graph-appearance-count',
-#                figure = figure_appearance_count
 #            ),
             html.H1('Link',),
             dcc.Input(id='link-input', type='text', value='paperid'),
@@ -282,14 +219,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
                     **default_table_settings,
                     id='compare-paper-table'
                 )
-            ),
-            html.H1('Papers Info. (Tier0)',),
-            dash_table.DataTable(
-                **default_table_settings,
-                id='papers-info-tier0',
-                columns=tbl_papers_tier0_c,
-                data=tbl_papers_tier0_d,
-                style_cell_conditional = tbl_papers_tier0_style
             ),
             html.H1('Papers Info. (All)',),
             html.H2(
@@ -328,14 +257,6 @@ def forest(keywords, count = 1000, rank = 100, year = 2019, tier = 1, output_dir
 #    def update_graph_info_citation_count(hoverData):
 #        return str(hoverData['points'][0]['x'])
 #
-#    @app.callback(
-#        Output('graph-info-appearance-count', 'children'),
-#        [
-#            Input('graph-appearance-count', 'hoverData')
-#        ]
-#    )
-#    def update_graph_info_appearance_count(hoverData):
-#        return str(hoverData['points'][0]['x'])
 
     @app.callback(
         [
