@@ -160,13 +160,16 @@ def forest(cache_dir):
             html.Div(
                 html.H1('Fetch Papers')
             ),
-            dcc.Input(id='fetch-paper-keywords', type='text', value=''),
-            dcc.Input(id='fetch-paper-year', type='text', value='2019'),
-            dcc.Input(id='fetch-paper-count', type='text', value='1000'),
-            dcc.Input(id='fetch-paper-token', type='text', value=''),
+            html.Div(children='keywords'), dcc.Input(id='fetch-paper-keywords', type='text', value=''),
+            html.Div(children='year'),     dcc.Input(id='fetch-paper-year', type='text', value=''),
+            html.Div(children='count'),    dcc.Input(id='fetch-paper-count', type='text', value=''),
+            html.Div(children='token'),    dcc.Input(id='fetch-paper-token', type='text', value=''),
             html.Button(id='fetch-paper-button', children='Fetch'),
             html.Div(
-                id = 'fetch-paper-result'
+                dash_table.DataTable(
+                    **default_table_settings,
+                    id='fetch-paper-result-table'
+                )
             ),
             html.H1('Link',),
             dcc.Input(id='link-input', type='text', value='paperid'),
@@ -217,7 +220,8 @@ def forest(cache_dir):
 
     @app.callback(
         [
-            Output('fetch-paper-result', 'children'),
+            Output('fetch-paper-result-table', 'data'),
+            Output('fetch-paper-result-table', 'columns'),
             Output('papers-info-all', 'data')
         ],
         [
@@ -234,18 +238,26 @@ def forest(cache_dir):
         # ignore blank keywords
         if 0 == len(keywords): return
         keyword_list = keywords.split(',')
+        print(keyword_list)
         
         fetch_papers = forest_cui.fetch_papers(keyword_list, year, count, token, cache_dir)
 
+        new_id_list = []
         new_papers = []
         for k in fetch_papers:
             if k not in papers:
                 papers[k] = copy.deepcopy(fetch_papers[k])
-                new_papers.append(k)
+                new_id_list.append(k)
+        for id in new_id_list:
+            new_papers.append(
+                create_paper_info(papers[id], exclude = ['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
+            )
+        df = pd.DataFrame(new_papers)
+        fetch_paper_result_data, fetch_paper_result_columns = generate_table(df)
         
-        c, d, s = table_papers(papers)
+        _, d, _ = table_papers(papers)
 
-        return f"append-count: {len(new_papers)}, {','.join(new_papers)}", d
+        return fetch_paper_result_data, fetch_paper_result_columns, d
 
     @app.callback(
         [
