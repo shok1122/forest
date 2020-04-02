@@ -158,20 +158,12 @@ def forest(cache_dir):
     app.layout = html.Div(
         children =[
             html.Div(
-                children ='value1',
-                style = { 'display': 'inline-block'}
+                html.H1('Token')
             ),
-            html.Div(
-                children ='value2',
-                style = { 'display': 'inline-block'}
-            ),
-            html.Div(
-                children ='value3'
-            ),
+            html.Div(children='token'), dcc.Input(id='fetch-paper-token', type='text', value=''),
             html.Div(
                 html.H1('Fetch Papers')
             ),
-            html.Div(children='token'), dcc.Input(id='fetch-paper-token', type='text', value=''),
             html.Div(children='keywords'), dcc.Input(id='fetch-paper-keywords', type='text', value=''),
             html.Div(children='year'),     dcc.Input(id='fetch-paper-year', type='text', value=''),
             html.Div(children='count'),    dcc.Input(id='fetch-paper-count', type='text', value=''),
@@ -181,6 +173,17 @@ def forest(cache_dir):
                 dash_table.DataTable(
                     **default_table_settings,
                     id='fetch-paper-result-table'
+                )
+            ),
+            html.Div(
+                html.H1('Fetch Reference Papers')
+            ),
+            html.Div(children='id'), dcc.Input(id='fetch-reference-paper-id', type='text', value=''),
+            html.Button(id='fetch-reference-paper-button', children='Fetch'),
+            html.Div(
+                dash_table.DataTable(
+                    **default_table_settings,
+                    id='fetch-reference-paper-result-table'
                 )
             ),
             html.H1('Link',),
@@ -224,6 +227,11 @@ def forest(cache_dir):
             html.H2(
                 ' | '.join([x['name'] for x in tbl_papers_all_c])
             ),
+            html.H2(
+                id='papers-info-all-count',
+                children='...'
+            ),
+            html.Button(id='papers-info-all-update-button', n_clicks=0, children='Update'),
             dash_table.DataTable(
                 **default_table_settings,
                 id='papers-info-all',
@@ -238,12 +246,24 @@ def forest(cache_dir):
 
             html.H1('__END__',)
         ])
+    @app.callback(
+        [
+            Output('papers-info-all', 'data'),
+            Output('papers-info-all-count', 'children'),
+        ],
+        [
+            Input('papers-info-all-update-button', 'n_clicks')
+        ],
+    )
+    def update_papers_info_all(n_clicks):
+        papers = forest_cui.get_papers()
+        _, d, _ = table_papers(papers)
+        return d, len(papers)
 
     @app.callback(
         [
             Output('fetch-paper-result-table', 'data'),
-            Output('fetch-paper-result-table', 'columns'),
-            Output('papers-info-all', 'data')
+            Output('fetch-paper-result-table', 'columns')
         ],
         [
             Input('fetch-paper-button', 'n_clicks')
@@ -274,9 +294,41 @@ def forest(cache_dir):
             merged_papers[id] = papers[id]
 
         c, d1, _ = table_papers(merged_papers)
-        _, d2, _ = table_papers(papers)
 
-        return d1, c, d2
+        return d1, c
+
+    @app.callback(
+        [
+            Output('fetch-reference-paper-result-table', 'data'),
+            Output('fetch-reference-paper-result-table', 'columns')
+        ],
+        [
+            Input('fetch-reference-paper-button', 'n_clicks')
+        ],
+        [
+            State('fetch-reference-paper-id', 'value'),
+            State('fetch-paper-token', 'value'),
+        ]
+    )
+    def fetch_paper_keyword(n_clicks, target_id, token):
+
+        merged_id_list = None
+
+        if 0 == len(target_id):
+            return
+
+        id_list = []
+        for id in papers[target_id]['references']:
+            id_list.append(id)
+        merged_id_list = forest_cui.fetch_papers_with_id(id_list, token, cache_dir)
+
+        merged_papers = {}
+        for id in merged_id_list:
+            merged_papers[id] = papers[id]
+
+        c, d1, _ = table_papers(merged_papers)
+
+        return d1, c
 
     @app.callback(
         [
