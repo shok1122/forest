@@ -62,8 +62,11 @@ def publication_type(pt):
         'Repository'][pt]
 
 def parse_entities(entities, papers):
+    count = 0
     for e in entities:
         id = str(e['Id'])
+        if id in papers:
+            continue
         # papers
         p = {}
         p['abst'] = parse_abstract(e['IA']) if 'IA' in e else 'Unknown'
@@ -83,3 +86,5 @@ def parse_entities(entities, papers):
         p['references'] = list(map(lambda x: str(x), e['RId'])) if 'RId' in e else []
         p['citcon'] = e['CitCon'] if 'CitCon' in e else 'Unknown'
         papers[id] = p
+        count += 1
+    return count
