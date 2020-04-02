@@ -201,6 +201,15 @@ def forest(cache_dir):
                     id='keyword-search-table'
                 )
             ),
+            html.H1('CitedBy Search',),
+            dcc.Input(id='citedby-search-input', type='text', value='id'),
+            html.Button(id='citedby-search-button', children='Search'),
+            html.Div(
+                dash_table.DataTable(
+                    **default_table_settings,
+                    id='citedby-search-table'
+                )
+            ),
             html.H1('Compare Paper Info.',),
             dcc.Input(id='input-paper-1', type='text', value='p-id-1'),
             dcc.Input(id='input-paper-2', type='text', value='p-id-2'),
@@ -347,7 +356,30 @@ def forest(cache_dir):
         df = pd.DataFrame(result)
         data, columns = generate_table(df)
         return data, columns
-    
+
+    @app.callback(
+        [
+            Output('citedby-search-table', 'data'),
+            Output('citedby-search-table', 'columns')
+        ],
+        [
+            Input('citedby-search-button', 'n_clicks')
+        ],
+        [
+            State('citedby-search-input', 'value'),
+        ]
+    )
+    def update_citedby_search_paper_table(n_clicks, target_id):
+        citedby_list = []
+        for id in papers:
+            if target_id in papers[id]['references']:
+                citedby_list.append(
+                    create_paper_info(papers[id], exclude = ['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
+                )
+        df = pd.DataFrame(citedby_list)
+        data, columns = generate_table(df)
+        return data, columns   
+
     @app.callback(
         Output('paper-info-json', 'children'),
         [
