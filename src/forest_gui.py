@@ -267,19 +267,16 @@ def forest(cache_dir):
             if 0 == len(keywords):
                 return
             keyword_list = keywords.split(',')
-            merged_id_list = forest_cui.fetch_papers(keyword_list, year, count, token, cache_dir)
+            merged_id_list = forest_cui.fetch_papers_with_keyword(keyword_list, year, int(count), token, cache_dir)
 
-        merged_papers = []
+        merged_papers = {}
         for id in merged_id_list:
-            merged_papers.append(
-                create_paper_info(papers[id], exclude = ['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
-            )
-        df = pd.DataFrame(merged_papers)
-        fetch_paper_result_data, fetch_paper_result_columns = generate_table(df)
-        
-        _, d, _ = table_papers(papers)
+            merged_papers[id] = papers[id]
 
-        return fetch_paper_result_data, fetch_paper_result_columns, d
+        c, d1, _ = table_papers(merged_papers)
+        _, d2, _ = table_papers(papers)
+
+        return d1, c, d2
 
     @app.callback(
         [
