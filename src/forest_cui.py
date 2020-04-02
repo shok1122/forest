@@ -25,6 +25,7 @@ def dump_master_papers(path_dir):
         json.dump(master_papers, f)
 
 def merge_papers(papers):
+    global master_papers
     merged_id_list = []
     for id in papers:
         if id not in master_papers:
@@ -40,24 +41,33 @@ def load_papers(path_dir):
             master_papers = json.load(f)
     return master_papers
 
-def fetch_papers(keyword_list, year, count, token, cache_dir):
-    papers_tmp = dict()
-    field_keyword = 'Composite(And('
-    title_keyword = 'And('
-    title_keyword_tmp = []
+def create_search_keyword_condition(keyword_list):
+    word_list = []
     for keyword in keyword_list:
-        field_keyword += f"F.FN=='{keyword}',"
-        title_keyword_tmp.append(
-            'And(' + ','.join(list(map(lambda x: f"W=='{x}'", keyword.split()))) + ')'
-        )
-    title_keyword = 'Or(' + ','.join(title_keyword_tmp) + ')'
-    field_keyword = field_keyword[:-1] + '))'
-    title_keyword = title_keyword[:-1] + ')'
-    expr = f"And(Or(Pt=='1',Pt=='3'),Y>={year},Or({title_keyword},{field_keyword}))"
+        for word in keyword.split():
+            if word not in word_list:
+                word_list.append(word)
+    return (
+        "Or("
+            "And(" + ','.join(map(lambda a: f"W=='{a}'", word_list)) + "),"
+            "Composite(And(" + ','.join(map(lambda a: f"F.FN=='{a}'", keyword_list)) + "))"
+        ")"
+    )
+
+def fetch_papers_with_keyword(keyword_list, year, total_count, token, cache_dir):
+    papers_tmp = dict()
+    search_keyword_condition = create_search_keyword_condition(keyword_list)
+    expr = f"And(Or(Pt=='1',Pt=='3'),Y>={year},{search_keyword_condition})"
     attr = read_attribute('asset/attributes')
 
-    response = func.invoke_evaluate(token, expr, attr, count)
-    func.parse_entities(response['entities'], papers_tmp)
+    count_oneshot = 100
+    fetched_num = 0
+    for offset in range(0, total_count, count_oneshot):
+        count = count_oneshot if (offset + count_oneshot) <= total_count else total_count - offset
+        response = func.invoke_evaluate(token, expr, attr, count, offset)
+        func.parse_entities(response['entities'], papers_tmp)
+        fetched_num += len(response['entities'])
+        print(f"fetched num: {fetched_num}")
 
     merged_id_list = merge_papers(papers_tmp)
     dump_master_papers(cache_dir)
