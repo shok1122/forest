@@ -11,6 +11,9 @@ from dash.dependencies import Input, Output, State
 
 import forest_cui
 
+COLOR_VALUE = 0
+COLOR_VALUE_MAX = 100
+
 G = nx.DiGraph()
 
 def create_XY(data, get_Y):
@@ -125,6 +128,15 @@ def create_paper_info(paper, exclude = []):
         retval[k] = s
     return retval
 
+def get_color():
+    global COLOR_VALUE
+    color = COLOR_VALUE
+    if COLOR_VALUE_MAX <= color:
+        COLOR_VALUE = 0
+    else:
+        COLOR_VALUE += 10
+    return color
+
 def create_papers_network(paper_list):
     global G
     # add references as edge
@@ -142,6 +154,8 @@ def create_papers_network(paper_list):
     pos = nx.spring_layout(G)
     for n in G.nodes:
         G.nodes[n]['pos'] = copy.deepcopy(pos[n])
+
+    color = get_color()
 
     edge_x = []
     edge_y = []
@@ -175,7 +189,7 @@ def create_papers_network(paper_list):
         hoverinfo='text',
         marker = dict(
             showscale = True,
-            colorscale = 'Earth',
+            colorscale = 'mygbm',
             reversescale = True,
             color = [],
             size = 10
@@ -184,6 +198,12 @@ def create_papers_network(paper_list):
         line_width = 2
     )
 
+    color = 0
+    for node, adjacencies in enumerate(G.adjacency()):
+        if 0 < len(adjacencies[1]):
+            color = get_color()
+        node_trace['marker']['color'] += tuple([color])
+
     figure = go.Figure(
         data = [edge_trace, node_trace],
         layout = go.Layout(
@@ -191,7 +211,8 @@ def create_papers_network(paper_list):
             titlefont_size = 16,
             showlegend = False,
             hovermode = 'closest',
-            margin = dict(b=20, l=5, r=5, t=40)
+            margin = dict(b=20, l=5, r=5, t=40),
+            clickmode = 'event+select'
         )
     )
 
