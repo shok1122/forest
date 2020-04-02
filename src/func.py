@@ -73,7 +73,7 @@ def parse_entities(entities, papers):
         p['authors'] = parse_authors(e['AA']) if 'AA' in e else 'Unknown'
         p['citation_count'] = int(e['CC']) if 'CC' in e else 'Unknown'
         p['conference'] = {'id':e['C']['CId'],'name':e['C']['CN']} if 'C' in e else 'Unknown'
-        p['id'] = e['Id'] if 'Id' in e else 'Unknown'
+        p['id'] = id if 'Id' in e else 'Unknown'
         p['journal-id'] = e['J']['JId'] if 'J' in e and 'JId' in e else 'Unknown'
         p['journal-name'] = e['J']['JN'] if 'J' in e and 'JN' in e else 'Unknown'
         p['pub-type'] = e['Pt'] if 'Pt' in e else 'Unknown'
