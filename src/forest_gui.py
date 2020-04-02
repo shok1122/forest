@@ -123,10 +123,7 @@ def create_paper_info(paper, exclude = []):
 
 def forest(cache_dir):
 
-    papers = dict()
-    papers = forest_cui.load_papers(
-        papers,
-        cache_dir)
+    papers = forest_cui.load_papers(cache_dir)
 
     keys = list(papers.keys())
     keys.sort()
@@ -155,15 +152,30 @@ def forest(cache_dir):
         'textAlign': 'center',
         'color': 'limegreen'
     }
+    style_fetch_paper = {
+        'display': 'inline-block'
+    }
     app.layout = html.Div(
         children =[
             html.Div(
+                children ='value1',
+                style = { 'display': 'inline-block'}
+            ),
+            html.Div(
+                children ='value2',
+                style = { 'display': 'inline-block'}
+            ),
+            html.Div(
+                children ='value3'
+            ),
+            html.Div(
                 html.H1('Fetch Papers')
             ),
+            html.Div(children='token'), dcc.Input(id='fetch-paper-token', type='text', value=''),
             html.Div(children='keywords'), dcc.Input(id='fetch-paper-keywords', type='text', value=''),
             html.Div(children='year'),     dcc.Input(id='fetch-paper-year', type='text', value=''),
             html.Div(children='count'),    dcc.Input(id='fetch-paper-count', type='text', value=''),
-            html.Div(children='token'),    dcc.Input(id='fetch-paper-token', type='text', value=''),
+            html.Div(children='id'), dcc.Input(id='fetch-paper-id', type='text', value=''),
             html.Button(id='fetch-paper-button', children='Fetch'),
             html.Div(
                 dash_table.DataTable(
@@ -231,28 +243,29 @@ def forest(cache_dir):
             State('fetch-paper-keywords', 'value'),
             State('fetch-paper-year', 'value'),
             State('fetch-paper-count', 'value'),
+            State('fetch-paper-id', 'value'),
             State('fetch-paper-token', 'value'),
         ]
     )
-    def fetch_paper(n_clicks, keywords, year, count, token):
-        # ignore blank keywords
-        if 0 == len(keywords): return
-        keyword_list = keywords.split(',')
-        print(keyword_list)
-        
-        fetch_papers = forest_cui.fetch_papers(keyword_list, year, count, token, cache_dir)
+    def fetch_paper_keyword(n_clicks, keywords, year, count, ids, token):
 
-        new_id_list = []
-        new_papers = []
-        for k in fetch_papers:
-            if k not in papers:
-                papers[k] = copy.deepcopy(fetch_papers[k])
-                new_id_list.append(k)
-        for id in new_id_list:
-            new_papers.append(
+        merged_id_list = None
+
+        if 0 < len(ids):
+            id_list = ids.split(',')
+            merged_id_list = forest_cui.fetch_papers_with_id(id_list, token, cache_dir)
+        else:
+            if 0 == len(keywords):
+                return
+            keyword_list = keywords.split(',')
+            merged_id_list = forest_cui.fetch_papers(keyword_list, year, count, token, cache_dir)
+
+        merged_papers = []
+        for id in merged_id_list:
+            merged_papers.append(
                 create_paper_info(papers[id], exclude = ['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
             )
-        df = pd.DataFrame(new_papers)
+        df = pd.DataFrame(merged_papers)
         fetch_paper_result_data, fetch_paper_result_columns = generate_table(df)
         
         _, d, _ = table_papers(papers)
