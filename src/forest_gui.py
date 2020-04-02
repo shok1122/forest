@@ -52,7 +52,7 @@ def create_style_cell_conditional(name_columns):
 def create_data(papers):
     data = [
         {
-            'id':papers[k]['id'] if 'id' in papers[k] else 'Unknown',
+            'id':str(papers[k]['id']) if 'id' in papers[k] else 'Unknown',
             'year':papers[k]['year'] if 'year' in papers[k] else 'Unknown',
             'publication':papers[k]['pub-name_f'] if 'pub-name_f' in papers[k] else 'Unknown',
             'citation_count':papers[k]['citation_count'] if 'citation_count' in papers[k] else 'Unknown',
@@ -340,6 +340,12 @@ def forest(cache_dir):
                 )
             ),
             html.Div(
+                html.H2('Abstract')
+            ),
+            html.Div(
+                id='selected-paper-abstract'
+            ),
+            html.Div(
                 html.H2('References')
             ),
             html.Div(
@@ -358,6 +364,7 @@ def forest(cache_dir):
             Output('selected-node-info-table', 'columns'),
             Output('selected-paper-references-info-table', 'data'),
             Output('selected-paper-references-info-table', 'columns'),
+            Output('selected-paper-abstract', 'children'),
         ],
         [
             Input('paper-network-graph', 'clickData')
@@ -375,7 +382,8 @@ def forest(cache_dir):
         else:
             ref_papers[ref] = {'id':ref}
         c2, d2, _ = table_papers(ref_papers)
-        return d1, c1, d2, c2
+        abstract = papers[clicked_id]['abst'] if 'abst' in papers[clicked_id] else 'Not yet fetched...'
+        return d1, c1, d2, c2, abstract
     
     @app.callback(
         Output('paper-network-graph', 'figure'),
