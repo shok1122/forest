@@ -564,20 +564,17 @@ def forest(cache_dir):
         ]
     )
     def update_search_paper_table(n_clicks, inputs):
-        result = []
+        found_papers = {}
         id_list = []
         for input in inputs.split(','):
             for id in papers:
                 if input.lower() not in papers[id]['title'].lower(): continue
                 if input.lower() not in papers[id]['abst'].lower(): continue
                 if id in id_list: continue
-                result.append(
-                    create_paper_info(papers[id], exclude = ['abst', 'references', 'journal-id', 'pub-name_s', 'citcon'])
-                )
+                found_papers[id] = papers[id]
                 id_list.append(id)
-        df = pd.DataFrame(result)
-        data, columns = generate_table(df)
-        return data, columns
+        c, d, _ = table_papers(found_papers)
+        return d, c
 
     @app.callback(
         [
