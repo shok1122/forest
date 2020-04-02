@@ -319,8 +319,9 @@ def forest(cache_dir):
             dcc.Input(id='paper-info-json-input', type='text', value='0'),
             html.Button(id='paper-info-json-button', n_clicks=0, children='Show'),
             html.Div(id='paper-info-json'),
+            html.H1('Papers network',),
             html.Div(
-                html.H2('Selected Paper')
+                html.H2('Selecte Paper (ID)')
             ),
             dcc.Input(id='paper-network-graph-update-input', type='text', value=''),
             html.Button(id='paper-network-graph-update-button', n_clicks=0, children='Update'),
@@ -330,9 +331,21 @@ def forest(cache_dir):
                 )
             ),
             html.Div(
+                html.H2('Selected Paper')
+            ),
+            html.Div(
                 dash_table.DataTable(
                     **default_table_settings,
                     id='selected-node-info-table'
+                )
+            ),
+            html.Div(
+                html.H2('References')
+            ),
+            html.Div(
+                dash_table.DataTable(
+                    **default_table_settings,
+                    id='selected-paper-references-info-table'
                 )
             ),
 
@@ -342,7 +355,9 @@ def forest(cache_dir):
     @app.callback(
         [
             Output('selected-node-info-table', 'data'),
-            Output('selected-node-info-table', 'columns')
+            Output('selected-node-info-table', 'columns'),
+            Output('selected-paper-references-info-table', 'data'),
+            Output('selected-paper-references-info-table', 'columns'),
         ],
         [
             Input('paper-network-graph', 'clickData')
@@ -352,8 +367,15 @@ def forest(cache_dir):
         clicked_id = clickData['points'][0]['customdata']
         p = dict()
         p[clicked_id] = papers[clicked_id] if clicked_id in papers else {'id':  clicked_id}
-        c, d, _ = table_papers(p)
-        return d, c
+        c1, d1, _ = table_papers(p)
+        ref_papers = {}
+        if 'references' in papers[clicked_id]:
+            for ref in papers[clicked_id]['references']:
+                ref_papers[ref] = papers[ref] if ref in papers else {'id': ref}
+        else:
+            ref_papers[ref] = {'id':ref}
+        c2, d2, _ = table_papers(ref_papers)
+        return d1, c1, d2, c2
     
     @app.callback(
         Output('paper-network-graph', 'figure'),
