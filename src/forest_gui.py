@@ -286,7 +286,7 @@ def forest(cache_dir):
         else:
             if 0 == len(keywords):
                 return
-            keyword_list = keywords.split(',')
+            keyword_list = list(map(lambda a: str(a).lower(), keywords.split(',')))
             merged_id_list = forest_cui.fetch_papers_with_keyword(keyword_list, year, int(count), token, cache_dir)
 
         merged_papers = {}
