@@ -3,11 +3,15 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly.graph_objects as go
+import networkx as nx
 import json
 import pandas as pd
 from dash.dependencies import Input, Output, State
 
 import forest_cui
+
+G = nx.DiGraph()
 
 def create_XY(data, get_Y):
     id_list = list(data.keys())
@@ -48,11 +52,11 @@ def create_style_cell_conditional(name_columns):
 def create_data(papers):
     data = [
         {
-            'id':papers[k]['id'],
-            'year':papers[k]['year'],
-            'publication':papers[k]['pub-name_f'],
-            'citation_count':papers[k]['citation_count'],
-            'title':papers[k]['title']
+            'id':papers[k]['id'] if 'id' in papers[k] else 'Unknown',
+            'year':papers[k]['year'] if 'year' in papers[k] else 'Unknown',
+            'publication':papers[k]['pub-name_f'] if 'pub-name_f' in papers[k] else 'Unknown',
+            'citation_count':papers[k]['citation_count'] if 'citation_count' in papers[k] else 'Unknown',
+            'title':papers[k]['title'] if 'title' in papers[k] else 'Unknown',
         } for k in papers
     ]
     data.sort(key = lambda x: x['id'])
@@ -120,6 +124,78 @@ def create_paper_info(paper, exclude = []):
             s = paper[k]
         retval[k] = s
     return retval
+
+def create_papers_network(paper_list):
+    global G
+    # add references as edge
+    if 0 < len(paper_list):
+        for id in paper_list:
+            G.add_node(id)
+            if 'references' not in paper_list[id]:
+                continue
+            for ref in paper_list[id]['references']:
+                G.add_edge(id, ref)
+                #list_edge.append((id, ref))
+    else:
+        G = nx.DiGraph()
+    
+    pos = nx.spring_layout(G)
+    for n in G.nodes:
+        G.nodes[n]['pos'] = copy.deepcopy(pos[n])
+
+    edge_x = []
+    edge_y = []
+    for edge in G.edges():
+        x0, y0 = G.nodes[edge[0]]['pos']
+        x1, y1 = G.nodes[edge[1]]['pos']
+        edge_x.append(x0)
+        edge_x.append(x1)
+        edge_x.append(None)
+        edge_y.append(y0)
+        edge_y.append(y1)
+        edge_y.append(None)
+    edge_trace = go.Scatter(
+        x = edge_x, y = edge_y,
+        line = dict(width = 0.5, color='#888'),
+        hoverinfo='none',
+        mode='lines'
+    )
+
+    node_x = []
+    node_y = []
+    paper_id = []
+    for node in G.nodes():
+        x, y = G.nodes[node]['pos']
+        node_x.append(x)
+        node_y.append(y)
+        paper_id.append(node)
+    node_trace = go.Scatter(
+        x = node_x, y = node_y,
+        mode = 'markers',
+        hoverinfo='text',
+        marker = dict(
+            showscale = True,
+            colorscale = 'Earth',
+            reversescale = True,
+            color = [],
+            size = 10
+        ),
+        customdata = paper_id,
+        line_width = 2
+    )
+
+    figure = go.Figure(
+        data = [edge_trace, node_trace],
+        layout = go.Layout(
+            title = 'Papers network',
+            titlefont_size = 16,
+            showlegend = False,
+            hovermode = 'closest',
+            margin = dict(b=20, l=5, r=5, t=40)
+        )
+    )
+
+    return figure
 
 def forest(cache_dir):
 
@@ -243,9 +319,55 @@ def forest(cache_dir):
             dcc.Input(id='paper-info-json-input', type='text', value='0'),
             html.Button(id='paper-info-json-button', n_clicks=0, children='Show'),
             html.Div(id='paper-info-json'),
+            html.Div(
+                html.H2('Selected Paper')
+            ),
+            dcc.Input(id='paper-network-graph-update-input', type='text', value=''),
+            html.Button(id='paper-network-graph-update-button', n_clicks=0, children='Update'),
+            html.Div(
+                dcc.Graph(
+                    id = 'paper-network-graph'
+                )
+            ),
+            html.Div(
+                dash_table.DataTable(
+                    **default_table_settings,
+                    id='selected-node-info-table'
+                )
+            ),
 
             html.H1('__END__',)
         ])
+
+    @app.callback(
+        [
+            Output('selected-node-info-table', 'data'),
+            Output('selected-node-info-table', 'columns')
+        ],
+        [
+            Input('paper-network-graph', 'clickData')
+        ]
+    )
+    def display_click_data(clickData):
+        clicked_id = clickData['points'][0]['customdata']
+        p = dict()
+        p[clicked_id] = papers[clicked_id] if clicked_id in papers else {'id':  clicked_id}
+        c, d, _ = table_papers(p)
+        return d, c
+    
+    @app.callback(
+        Output('paper-network-graph', 'figure'),
+        [
+            Input('paper-network-graph-update-button', 'n_clicks')
+        ],
+        [
+            State('paper-network-graph-update-input', 'value')
+        ]
+    )
+    def updat_paper_network_graph(n_clicks, paper_id):
+        figure = create_papers_network({paper_id:papers[paper_id]}) if 0 < len(paper_id) else create_papers_network('')
+        return figure
+
     @app.callback(
         [
             Output('papers-info-all', 'data'),
