@@ -65,7 +65,9 @@ def fetch_papers_with_keyword(keyword_list, year, total_count, token, cache_dir)
     for offset in range(0, total_count, count_oneshot):
         count = count_oneshot if (offset + count_oneshot) <= total_count else total_count - offset
         response = func.invoke_evaluate(token, expr, attr, count, offset)
-        func.parse_entities(response['entities'], papers_tmp)
+        count = func.parse_entities(response['entities'], papers_tmp)
+        if count == 0:
+            break
         fetched_num += len(response['entities'])
         print(f"fetched num: {fetched_num}")
 
