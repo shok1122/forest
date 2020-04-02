@@ -254,12 +254,13 @@ def forest(cache_dir):
     }
     app.layout = html.Div(
         children =[
-            html.Div(
-                html.H1('Token')
-            ),
+            html.Div(html.H1('Token')),
             html.Div(children='token'), dcc.Input(id='fetch-paper-token', type='text', value=''),
             html.Div(
-                html.H1('Fetch Papers')
+                [
+                    html.H1('Fetch Papers'),
+                    html.Div(id='fetch-paper-error', style = {'color':'red'})
+                ]
             ),
             html.Div(children='keywords'), dcc.Input(id='fetch-paper-keywords', type='text', value=''),
             html.Div(children='year'),     dcc.Input(id='fetch-paper-year', type='text', value=''),
@@ -436,7 +437,8 @@ def forest(cache_dir):
     @app.callback(
         [
             Output('fetch-paper-result-table', 'data'),
-            Output('fetch-paper-result-table', 'columns')
+            Output('fetch-paper-result-table', 'columns'),
+            Output('fetch-paper-error', 'children')
         ],
         [
             Input('fetch-paper-button', 'n_clicks')
@@ -453,12 +455,15 @@ def forest(cache_dir):
 
         merged_id_list = None
 
+        if 0 == len(token):
+            return None, None, 'Token !!!!'
+
         if 0 < len(ids):
             id_list = ids.split(',')
             merged_id_list = forest_cui.fetch_papers_with_id(id_list, token, cache_dir)
         else:
             if 0 == len(keywords):
-                return
+                return None, None, "Keyword or ID !!!!"
             keyword_list = list(map(lambda a: str(a).lower(), keywords.split(',')))
             merged_id_list = forest_cui.fetch_papers_with_keyword(keyword_list, year, int(count), token, cache_dir)
 
@@ -468,7 +473,7 @@ def forest(cache_dir):
 
         c, d1, _ = table_papers(merged_papers)
 
-        return d1, c
+        return d1, c, ""
 
     @app.callback(
         [
