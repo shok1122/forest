@@ -242,7 +242,11 @@ def forest(cache_dir):
             ),
             html.H1('Link',),
             dcc.Input(id='link-input', type='text', value='paperid'),
-            html.A('Microsoft Academic', id='link-url', href = 'https://academic.microsoft.com/paper/2103863878'),
+            html.Button(id='link-button', children='Create'),
+            html.Br(),
+            html.A(id='link-microsoft-url', children='microsoft academic'),
+            html.Br(),
+            html.A(id='link-google-url', children='google scholar'),
             html.H1('Abstract',),
             dcc.Input(id='abst-input', type='text', value='paperid'),
             html.Button(id='abst-button', children='Search'),
@@ -335,6 +339,27 @@ def forest(cache_dir):
 
             html.H1('__END__',)
         ])
+
+    @app.callback(
+        [
+            Output('link-microsoft-url', 'href'),
+            Output('link-google-url', 'href'),
+        ],
+        [
+            Input('link-button', 'n_clicks')
+        ],
+        [
+            State('link-input', 'value')
+        ]
+    )
+    def create_link(n_clicks, id):
+        if id not in papers:
+            return "invalid id", "invalid id"
+        # microsoft academic
+        url_m = f"https://academic.microsoft.com/paper/{id}"
+        # google scholar
+        url_g = f"https://scholar.google.com/scholar?q={'+'.join(papers[id]['title'].split())}"
+        return url_m, url_g
 
     @app.callback(
         [
@@ -463,19 +488,6 @@ def forest(cache_dir):
         c, d1, _ = table_papers(merged_papers)
 
         return d1, c
-
-    @app.callback(
-        [
-            Output('link-url', 'children'),
-            Output('link-url', 'href')
-        ],
-        [
-            Input('link-input', 'value')
-        ]
-    )
-    def update_link(input):
-        url = f'https://academic.microsoft.com/paper/{input}'
-        return url, url
 
     @app.callback(
         [
