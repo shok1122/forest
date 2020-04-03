@@ -9,7 +9,7 @@ import json
 import pandas as pd
 from dash.dependencies import Input, Output, State
 
-import forest_cui
+import forest_core
 
 COLOR_VALUE = 0
 COLOR_VALUE_MAX = 100
@@ -175,7 +175,7 @@ def create_papers_network(paper_list):
 
 def forest(cache_dir):
 
-    papers = forest_cui.load_papers(cache_dir)
+    papers = forest_core.load_papers(cache_dir)
 
     keys = list(papers.keys())
     keys.sort()
@@ -375,7 +375,7 @@ def forest(cache_dir):
         ],
     )
     def update_papers_info_all(n_clicks):
-        papers = forest_cui.get_papers()
+        papers = forest_core.get_papers()
         _, d, _ = table_papers(papers)
         return d, len(papers)
 
@@ -405,12 +405,12 @@ def forest(cache_dir):
 
         if 0 < len(ids):
             id_list = ids.split(',')
-            merged_id_list = forest_cui.fetch_papers_with_id(id_list, token, cache_dir)
+            merged_id_list = forest_core.fetch_papers_with_id(id_list, token, cache_dir)
         else:
             if 0 == len(keywords):
                 return None, None, "Keyword or ID !!!!"
             keyword_list = list(map(lambda a: str(a).lower(), keywords.split(',')))
-            merged_id_list = forest_cui.fetch_papers_with_keyword(keyword_list, year, int(count), token, cache_dir)
+            merged_id_list = forest_core.fetch_papers_with_keyword(keyword_list, year, int(count), token, cache_dir)
 
         merged_papers = {}
         for id in merged_id_list:
@@ -443,7 +443,7 @@ def forest(cache_dir):
         id_list = []
         for id in papers[target_id]['references']:
             id_list.append(id)
-        merged_id_list = forest_cui.fetch_papers_with_id(id_list, token, cache_dir)
+        merged_id_list = forest_core.fetch_papers_with_id(id_list, token, cache_dir)
 
         merged_papers = {}
         for id in merged_id_list:

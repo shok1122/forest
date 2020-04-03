@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-import forest_cui
+import forest_core
 import forest_gui
 
 # ------------------------------
