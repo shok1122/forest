@@ -14,7 +14,26 @@ import forest_core
 COLOR_VALUE = 0
 COLOR_VALUE_MAX = 100
 
-G = nx.DiGraph()
+COLOR_LIST = [
+    "slateblue", "steelblue", "royalblue", "blue", "deepskyblue", "cyan",
+    "lightseagreen", "limegreen", "yellowgreen", "gold", "darkorange",
+    "sandybrown", "red", "hotpink", "darkviolet", "forestgreen", "mediumvioletred",
+    "dimgray", "black"
+]
+
+#G = nx.DiGraph()
+Figure = go.Figure(
+    layout = go.Layout(
+        title = 'Papers network',
+        titlefont_size = 16,
+        height = 800,
+        showlegend = False,
+        hovermode = 'closest',
+        margin = dict(b=20, l=5, r=5, t=40),
+        clickmode = 'event+select'
+    )
+)
+
 
 def create_columns(name):
     columns = {
@@ -85,15 +104,15 @@ def create_paper_info(paper, exclude = []):
 
 def get_color():
     global COLOR_VALUE
-    color = COLOR_VALUE
-    if COLOR_VALUE_MAX <= color:
+    color = COLOR_LIST[COLOR_VALUE]
+    COLOR_VALUE += 1
+    if len(COLOR_LIST) <= COLOR_VALUE:
         COLOR_VALUE = 0
-    else:
-        COLOR_VALUE += 10
     return color
 
 def create_papers_network(paper_list):
-    global G
+    G = nx.DiGraph()
+    global Figure
     # add references as edge
     if 0 < len(paper_list):
         for id in paper_list:
@@ -103,8 +122,8 @@ def create_papers_network(paper_list):
             for ref in paper_list[id]['references']:
                 G.add_edge(id, ref)
                 #list_edge.append((id, ref))
-    else:
-        G = nx.DiGraph()
+    #else:
+    #    G = nx.DiGraph()
     
     pos = nx.spring_layout(G)
     for n in G.nodes:
@@ -143,7 +162,7 @@ def create_papers_network(paper_list):
         mode = 'markers',
         hoverinfo='text',
         marker = dict(
-            showscale = True,
+            # showscale = True,
             colorscale = 'mygbm',
             reversescale = True,
             color = [],
@@ -159,19 +178,11 @@ def create_papers_network(paper_list):
             color = get_color()
         node_trace['marker']['color'] += tuple([color])
 
-    figure = go.Figure(
-        data = [edge_trace, node_trace],
-        layout = go.Layout(
-            title = 'Papers network',
-            titlefont_size = 16,
-            showlegend = False,
-            hovermode = 'closest',
-            margin = dict(b=20, l=5, r=5, t=40),
-            clickmode = 'event+select'
-        )
+    Figure.add_traces(
+        data = [edge_trace, node_trace]
     )
 
-    return figure
+    return Figure
 
 def forest(cache_dir):
 
