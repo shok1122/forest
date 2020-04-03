@@ -16,27 +16,6 @@ COLOR_VALUE_MAX = 100
 
 G = nx.DiGraph()
 
-def create_XY(data, get_Y):
-    id_list = list(data.keys())
-    id_list.sort()
-    X = list(map(lambda a: 'id:'+a, id_list))
-    Y = []
-    for id in id_list:
-        Y.append(get_Y(data[id]))
-    return { 'X': X, 'Y': Y }
-
-def create_bar_graph(name, X, Y):
-    return {
-        'data': [
-            {
-                'x': X,
-                'y': Y,
-                'type': 'bar',
-                'name': name
-            }
-        ],
-    }
-        
 def create_columns(name):
     columns = {
         'id':name,
@@ -80,21 +59,6 @@ def table_papers(papers):
     data = create_data(papers)
     return columns, data, style_cell_conditional
 
-def include_in(keyword, target):
-    return '●' if keyword in target else ''
-
-def generate_table_html(df, style = {}):
-    return html.Table(
-        # Header
-        [html.Tr(
-            [html.Th('')] + [html.Th(col, style=style) for col in [f"paper{i}" for i in df.columns]])
-        ] +
-        # Body
-        [html.Tr(
-            [html.Td(df.index[i])] + [html.Td(df.iloc[i][col], style=style) for col in df.columns]
-        ) for i in range(len(df))]
-    )
-
 def generate_columns(df):
     return [
         {'id':v, 'name':v} for v in df.columns
@@ -103,15 +67,6 @@ def generate_columns(df):
 def generate_table(df):
     columns =  generate_columns(df)
     data = df.to_dict('records')
-    return data, columns
-
-def generate_table_transpose(df):
-    df = df.T
-    columns =  generate_columns(df)
-    columns.insert(0, {'id':'info','name':'info'})
-    data = df.to_dict('records')
-    for i in range(len(data)):
-        data[i]['info'] = df.index[i]
     return data, columns
 
 def create_paper_info(paper, exclude = []):
@@ -241,16 +196,6 @@ def forest(cache_dir):
         },
         'sort_action': 'native',
         'export_format': 'csv'
-    }
-    graph_title_style = {
-        'textAlign': 'center'
-    }
-    graph_info_style = {
-        'textAlign': 'center',
-        'color': 'limegreen'
-    }
-    style_fetch_paper = {
-        'display': 'inline-block'
     }
     app.layout = html.Div(
         children =[
