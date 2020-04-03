@@ -368,8 +368,10 @@ def forest(cache_dir):
         [
             Output('selected-node-info-table', 'data'),
             Output('selected-node-info-table', 'columns'),
+            Output('selected-node-info-table', 'style_cell_conditional'),
             Output('selected-paper-references-info-table', 'data'),
             Output('selected-paper-references-info-table', 'columns'),
+            Output('selected-paper-references-info-table', 'style_cell_conditional'),
             Output('selected-paper-abstract', 'children'),
         ],
         [
@@ -380,16 +382,16 @@ def forest(cache_dir):
         clicked_id = clickData['points'][0]['customdata']
         p = dict()
         p[clicked_id] = papers[clicked_id] if clicked_id in papers else {'id':  clicked_id}
-        c1, d1, _ = table_papers(p)
+        c1, d1, s1 = table_papers(p)
         ref_papers = {}
         if 'references' in papers[clicked_id]:
             for ref in papers[clicked_id]['references']:
                 ref_papers[ref] = papers[ref] if ref in papers else {'id': ref}
         else:
             ref_papers[ref] = {'id':ref}
-        c2, d2, _ = table_papers(ref_papers)
+        c2, d2, s2 = table_papers(ref_papers)
         abstract = papers[clicked_id]['abst'] if 'abst' in papers[clicked_id] else 'Not yet fetched...'
-        return d1, c1, d2, c2, abstract
+        return d1, c1, s1, d2, c2, s2, abstract
     
     @app.callback(
         Output('paper-network-graph', 'figure'),
@@ -422,6 +424,7 @@ def forest(cache_dir):
         [
             Output('fetch-paper-result-table', 'data'),
             Output('fetch-paper-result-table', 'columns'),
+            Output('fetch-paper-result-table', 'style_cell_conditional'),
             Output('fetch-paper-error', 'children')
         ],
         [
@@ -440,14 +443,14 @@ def forest(cache_dir):
         merged_id_list = None
 
         if 0 == len(token):
-            return None, None, 'Token !!!!'
+            return None, None, None, 'Token !!!!'
 
         if 0 < len(ids):
             id_list = ids.split(',')
             merged_id_list = forest_core.fetch_papers_with_id(id_list, token, cache_dir)
         else:
             if 0 == len(keywords):
-                return None, None, "Keyword or ID !!!!"
+                return None, None, None, "Keyword or ID !!!!"
             keyword_list = list(map(lambda a: str(a).lower(), keywords.split(',')))
             merged_id_list = forest_core.fetch_papers_with_keyword(keyword_list, year, int(count), token, cache_dir)
 
@@ -455,14 +458,15 @@ def forest(cache_dir):
         for id in merged_id_list:
             merged_papers[id] = papers[id]
 
-        c, d1, _ = table_papers(merged_papers)
+        c, d, s = table_papers(merged_papers)
 
-        return d1, c, ""
+        return d, c, s, ""
 
     @app.callback(
         [
             Output('fetch-reference-paper-result-table', 'data'),
-            Output('fetch-reference-paper-result-table', 'columns')
+            Output('fetch-reference-paper-result-table', 'columns'),
+            Output('fetch-reference-paper-result-table', 'style_cell_conditional')
         ],
         [
             Input('fetch-reference-paper-button', 'n_clicks')
@@ -488,9 +492,9 @@ def forest(cache_dir):
         for id in merged_id_list:
             merged_papers[id] = papers[id]
 
-        c, d1, _ = table_papers(merged_papers)
+        c, d, s = table_papers(merged_papers)
 
-        return d1, c
+        return d, c, s
 
     @app.callback(
         [
@@ -530,7 +534,8 @@ def forest(cache_dir):
     @app.callback(
         [
             Output('keyword-search-table', 'data'),
-            Output('keyword-search-table', 'columns')
+            Output('keyword-search-table', 'columns'),
+            Output('keyword-search-table', 'style_cell_conditional'),
         ],
         [
             Input('keyword-search-button', 'n_clicks')
@@ -549,8 +554,8 @@ def forest(cache_dir):
                 if id in id_list: continue
                 found_papers[id] = papers[id]
                 id_list.append(id)
-        c, d, _ = table_papers(found_papers)
-        return d, c
+        c, d, s = table_papers(found_papers)
+        return d, c, s
 
     @app.callback(
         [
