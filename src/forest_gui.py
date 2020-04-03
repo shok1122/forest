@@ -10,6 +10,7 @@ import pandas as pd
 from dash.dependencies import Input, Output, State
 
 import forest_core
+import func
 
 COLOR_VALUE = 0
 COLOR_VALUE_MAX = 100
@@ -55,6 +56,7 @@ def create_data(papers):
         {
             'id':str(papers[k]['id']) if 'id' in papers[k] else 'Unknown',
             'year':papers[k]['year'] if 'year' in papers[k] else 'Unknown',
+            'type': func.pub_type_name(int(papers[k]['pub-type'])) if 'pub-type' in papers[k] else 'Unknown',
             'publication':papers[k]['pub-name_f'] if 'pub-name_f' in papers[k] else 'Unknown',
             'citation_count':papers[k]['citation_count'] if 'citation_count' in papers[k] else 'Unknown',
             'title':papers[k]['title'] if 'title' in papers[k] else 'Unknown',
@@ -70,6 +72,7 @@ def table_papers(papers):
         create_columns('index'),
         create_columns('id'),
         create_columns('year'),
+        create_columns('type'),
         create_columns('publication'),
         create_columns('citation_count'),
         create_columns('title')

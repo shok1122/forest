@@ -50,7 +50,7 @@ def parse_authors(authors):
         r['affiliation'] = a['DAfN']
     return retval
 
-def publication_type(pt):
+def pub_type_name(pt):
     return ['Unknown',
         'Journal',
         'Patent',
